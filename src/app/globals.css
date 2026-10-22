@@ -1,0 +1,853 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-ground: var(--ground);
+  --color-raised: var(--raised);
+  --color-raised-2: var(--raised-2);
+  --color-ink: var(--ink);
+  --color-soft: var(--soft);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-on-brand: var(--on-brand);
+  --color-positive: var(--positive);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+}
+
+/*
+ * One palette for the site and the admin: a blue-black ground, cool white ink
+ * and the logo's royal blue, which carries the one action per screen and the closing field.
+ */
+:root {
+  color-scheme: dark;
+
+  --ground: #070a12;
+  --raised: #0f1422;
+  --raised-2: #171e30;
+  --ink: #eef2fb;
+  --soft: #98a2b9;
+  /* The logo's royal blue: buttons, fields, the mark. */
+  --brand: #2d50d2;
+  --brand-strong: #3b5fe6;
+  /* The same blue, lifted so it reads as text and focus on the dark ground. */
+  --brand-ink: #93a8ff;
+  --on-brand: #ffffff;
+  --positive: #8fd19e;
+
+  --background: var(--ground);
+  --foreground: var(--ink);
+  --card: var(--raised);
+  --card-foreground: var(--ink);
+  --popover: #111726;
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--ground);
+  --secondary: var(--raised-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--raised-2);
+  --muted-foreground: var(--soft);
+  --accent: #1a2133;
+  --accent-foreground: var(--ink);
+  --destructive: #ef6a7f;
+  --border: #222a3d;
+  --input: #2f3850;
+  --ring: var(--brand-ink);
+  --radius: 0.5rem;
+
+  /* Page frame and type steps (five sizes do the visible work). */
+  --margin: clamp(1.25rem, 3.4vw, 2.5rem);
+  --content: 1400px;
+  --gutter: clamp(0.75rem, 1.4vw, 1.5rem);
+  --section-gap: clamp(4.5rem, 9vw, 8.5rem);
+  --step-xl: clamp(2.375rem, 4.6vw, 4.25rem);
+  --step-head: clamp(1.5rem, 2.1vw, 2.125rem);
+  --step-lead: clamp(1.0625rem, 1.25vw, 1.25rem);
+  --step-body: 1rem;
+  --step-small: 0.875rem;
+
+  /* Motion. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-exit: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+  --t-press: 140ms;
+  --t-hover: 180ms;
+  --t-ui: 240ms;
+}
+
+/* The home page below the hero: a light ground, the same blue carrying the actions. */
+.theme-light {
+  color-scheme: light;
+  --ground: #f5f7fc;
+  --raised: #ffffff;
+  --raised-2: #edf1fa;
+  --ink: #0b1430;
+  --soft: #556080;
+  --brand-strong: #2445c0;
+  --brand-ink: #2d50d2;
+  --brand-tint: #e7ecfd;
+  --border: #e1e6f2;
+  --accent: #e4eaf8;
+  /* The shadcn tokens resolve where they are declared, so they are restated for this scope. */
+  --background: var(--ground);
+  --foreground: var(--ink);
+  --card: var(--raised);
+  --card-foreground: var(--ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: #ffffff;
+  --secondary: var(--raised-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--raised-2);
+  --muted-foreground: var(--soft);
+  --accent-foreground: var(--ink);
+  --destructive: #c8283f;
+  --input: #cfd6e6;
+  --ring: var(--brand);
+  background: var(--ground);
+  color: var(--ink);
+}
+.theme-light .shimmer::after {
+  background: linear-gradient(90deg, transparent 0%, rgb(45 80 210 / 0.05) 50%, transparent 100%);
+}
+.theme-light .btn-ink:hover {
+  background: #1c2a52;
+}
+.btn-outline {
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--brand) 55%, transparent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-outline:hover {
+    background: color-mix(in oklab, var(--brand) 10%, transparent);
+  }
+}
+/* Small uppercase label over a section title. */
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brand-ink);
+}
+
+/* Home service cards (_home/services.tsx): each card carries its colour in --ink-c and --tint. */
+.service-card {
+  box-shadow: 0 1px 2px rgb(11 20 48 / 0.04);
+  transition:
+    transform 420ms var(--ease-out),
+    box-shadow 420ms var(--ease-out),
+    border-color 300ms ease;
+}
+.service-wash {
+  background: radial-gradient(120% 70% at 100% 0%, var(--tint), transparent 65%);
+  opacity: 0;
+  transition: opacity 420ms var(--ease-out);
+}
+.service-mark {
+  color: var(--tint);
+  opacity: 0.7;
+  transform: rotate(-12deg) scale(0.9);
+  transition: transform 700ms var(--ease-expo), opacity 420ms ease;
+}
+.service-icon {
+  background: linear-gradient(140deg, color-mix(in oklab, var(--ink-c) 70%, white), var(--ink-c));
+  box-shadow: 0 10px 22px -10px var(--ink-c);
+  transition: transform 500ms var(--ease-expo);
+}
+.service-ping {
+  background: var(--ink-c);
+  opacity: 0;
+}
+.service-line {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 600ms var(--ease-expo);
+}
+.service-arrow {
+  color: var(--ink-c);
+  box-shadow: inset 0 0 0 1.5px var(--tint);
+  transition:
+    background-color 240ms ease,
+    color 240ms ease,
+    box-shadow 240ms ease;
+}
+.service-arrow svg {
+  transition: transform 320ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .service-card:hover,
+  .service-card:focus-within {
+    transform: translateY(-6px);
+    border-color: color-mix(in oklab, var(--ink-c) 30%, var(--border));
+    box-shadow: 0 24px 48px -24px color-mix(in oklab, var(--ink-c) 55%, transparent);
+  }
+  .service-card:hover .service-wash,
+  .service-card:focus-within .service-wash {
+    opacity: 1;
+  }
+  .service-card:hover .service-mark {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+  .service-card:hover .service-icon {
+    transform: rotate(-8deg) scale(1.08);
+  }
+  .service-card:hover .service-ping {
+    animation: service-ping 900ms var(--ease-out) 1;
+  }
+  .service-card:hover .service-line,
+  .service-card:focus-within .service-line {
+    transform: scaleX(1);
+  }
+  .service-card:hover .service-arrow {
+    background: var(--ink-c);
+    color: #fff;
+    box-shadow: inset 0 0 0 1.5px var(--ink-c);
+  }
+  /* The arrow leaves to the right and comes back in from the left. */
+  .service-card:hover .service-arrow svg {
+    animation: arrow-through 520ms var(--ease-out) 1;
+  }
+  .service-card:hover .service-point {
+    animation: point-nudge 420ms var(--ease-out) both;
+    animation-delay: calc(var(--n, 0) * 60ms);
+  }
+}
+@keyframes service-ping {
+  from {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+@keyframes arrow-through {
+  45% {
+    transform: translateX(150%);
+  }
+  46% {
+    transform: translateX(-150%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes point-nudge {
+  40% {
+    transform: translateX(4px);
+  }
+  to {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .service-card,
+  .service-mark,
+  .service-icon,
+  .service-line,
+  .service-arrow svg {
+    transition: none;
+  }
+  .service-card:hover,
+  .service-card:focus-within {
+    transform: none;
+  }
+  .service-card .service-ping,
+  .service-card .service-arrow svg,
+  .service-card .service-point {
+    animation: none !important;
+  }
+  .service-card:hover .service-mark,
+  .service-card:hover .service-icon {
+    transform: none;
+  }
+}
+
+/* The showreel (_home/showreel.tsx). Each new screen cuts in over the last one, which stays
+   solid underneath, then drifts a little while it plays. */
+.showreel-under {
+  z-index: 0;
+}
+.showreel-under .showreel-img {
+  transform: scale(1.04);
+}
+.showreel-in {
+  z-index: 1;
+  animation: showreel-cut 700ms var(--ease-out) both;
+}
+.showreel-stage[data-playing="true"] .showreel-in .showreel-img {
+  animation: showreel-drift calc(var(--frame) + 700ms) linear both;
+}
+.showreel-bar[data-state="todo"] {
+  width: 0;
+}
+.showreel-bar[data-state="done"],
+.showreel-bar[data-state="on"] {
+  width: 100%;
+}
+.showreel-stage[data-playing="true"] .showreel-bar[data-state="on"] {
+  animation: showreel-progress var(--frame) linear both;
+}
+.showreel-stage[data-playing="false"] .showreel-bar[data-state="on"] {
+  width: 100%;
+}
+.showreel-control {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  background: var(--raised);
+  color: var(--ink);
+  transition:
+    background-color var(--t-hover) ease,
+    color var(--t-hover) ease,
+    transform var(--t-press) var(--ease-out);
+}
+.showreel-control:active {
+  transform: scale(0.94);
+}
+.showreel-control-main {
+  width: 3.25rem;
+  height: 3.25rem;
+  background: var(--brand);
+  color: var(--on-brand);
+}
+.showreel-item {
+  transition: background-color var(--t-hover) ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .showreel-control:hover {
+    background: var(--accent);
+  }
+  .showreel-control-main:hover {
+    background: var(--brand-strong);
+  }
+  .showreel-stage .showreel-img {
+    transition: filter 400ms ease;
+  }
+  .showreel-stage:hover .showreel-in .showreel-img {
+    filter: brightness(0.92);
+  }
+}
+@keyframes showreel-cut {
+  from {
+    opacity: 0;
+    transform: scale(1.025);
+  }
+}
+@keyframes showreel-drift {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.04);
+  }
+}
+@keyframes showreel-progress {
+  from {
+    width: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .showreel-in,
+  .showreel-in .showreel-img {
+    animation: none !important;
+  }
+  .showreel-under .showreel-img {
+    transform: none;
+  }
+}
+
+/* A word in a slowly moving blue gradient, as in the section titles. */
+.text-shine {
+  background-image: linear-gradient(90deg, #2445c0 0%, #3d63ea 30%, #6f8fff 50%, #3d63ea 70%, #2445c0 100%);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: text-shine 6s linear infinite;
+}
+@keyframes text-shine {
+  to {
+    background-position: -200% center;
+  }
+}
+
+/* Home: the light page rises over the pinned hero like a curtain (see .hero below). */
+.curtain {
+  position: relative;
+  z-index: 10;
+  margin-top: -100svh;
+  border-radius: 1.75rem 1.75rem 0 0;
+  box-shadow: 0 -24px 60px -20px rgb(0 0 0 / 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text-shine {
+    animation: none;
+  }
+}
+
+/* The admin's true-black-flat style: elevation by lightness alone. */
+.admin {
+  --ground: #080b14;
+  --raised: #111626;
+  --raised-2: #1a2132;
+  --background: var(--ground);
+  --card: var(--raised);
+  --muted: var(--raised-2);
+  --muted-foreground: #b4b4b4;
+  --secondary: var(--raised-2);
+  --border: #232b3e;
+  --input: #333c54;
+  --faint: #949494;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-size: var(--step-body);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  ::selection {
+    background: var(--brand);
+    color: var(--on-brand);
+  }
+  :focus-visible {
+    outline: 2px solid var(--brand-ink);
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  /* Content sits in a centred 1400px column; full-width backgrounds still reach the edges. */
+  .frame {
+    padding-inline: max(var(--margin), calc((100% - var(--content)) / 2));
+  }
+  .grid-12 {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Text links: underline arrives on hover, never colour-only. */
+  .link {
+    text-decoration-line: underline;
+    text-decoration-color: color-mix(in oklab, currentColor 35%, transparent);
+    text-decoration-thickness: 0.07em;
+    text-underline-offset: 0.22em;
+    transition: text-decoration-color var(--t-hover) ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .link:hover {
+      text-decoration-color: currentColor;
+    }
+  }
+
+  /* The site's one button shape: a full pill. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 3rem;
+    padding: 0 1.5rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1;
+    white-space: nowrap;
+    transition:
+      transform var(--t-press) var(--ease-out),
+      background-color var(--t-hover) ease,
+      color var(--t-hover) ease;
+  }
+  .btn:active {
+    transform: scale(0.97);
+  }
+  .btn-brand {
+    background: var(--brand);
+    color: var(--on-brand);
+  }
+  .btn-ink {
+    background: var(--ink);
+    color: var(--ground);
+  }
+  .btn-quiet {
+    background: var(--raised-2);
+    color: var(--ink);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-brand:hover {
+      background: var(--brand-strong);
+    }
+    .btn-ink:hover {
+      background: #ffffff;
+    }
+    .btn-quiet:hover {
+      background: #2b2a27;
+    }
+  }
+
+  /* Loading: the final layout with a moving sheen, like a feed that is still arriving. */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+    background: var(--raised);
+    isolation: isolate;
+  }
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent 0%, rgb(255 255 255 / 0.055) 45%, rgb(255 255 255 / 0.09) 50%, rgb(255 255 255 / 0.055) 55%, transparent 100%);
+    animation: shimmer 1.35s var(--ease-in-out) infinite;
+  }
+  .shimmer-line {
+    border-radius: 999px;
+  }
+
+  /* Rich text from the CMS. */
+  .prose-d4 {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    max-width: 68ch;
+  }
+  .prose-d4 > * + * {
+    margin-top: 1.1em;
+  }
+  .prose-d4 h2 {
+    font-size: var(--step-head);
+    line-height: 1.15;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-top: 2em;
+  }
+  .prose-d4 h3 {
+    font-size: 1.375rem;
+    font-weight: 600;
+    margin-top: 1.8em;
+  }
+  .prose-d4 h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-top: 1.6em;
+  }
+  .prose-d4 a {
+    color: var(--brand-ink);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .prose-d4 ul {
+    list-style: disc;
+    padding-left: 1.25em;
+  }
+  .prose-d4 ol {
+    list-style: decimal;
+    padding-left: 1.25em;
+  }
+  .prose-d4 li + li {
+    margin-top: 0.4em;
+  }
+  .prose-d4 blockquote {
+    border-left: 3px solid var(--brand);
+    padding-left: 1em;
+    color: var(--ink);
+    font-size: var(--step-lead);
+  }
+  .prose-d4 img {
+    height: auto;
+    max-width: 100%;
+  }
+  .prose-d4 strong {
+    font-weight: 600;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Home hero. A pinned stage on a runway: one extra screen of it is where the light page
+   (.curtain) rises over the stage. With `immersive` (set before paint) the runway also
+   carries the 3D flight. */
+.hero {
+  z-index: 0;
+  height: var(--runway, 200svh);
+}
+.hero-stage {
+  position: sticky;
+  top: 0;
+  min-height: 100svh;
+}
+.immersive .hero-stage {
+  height: 100svh;
+}
+.hero-canvas {
+  opacity: 0;
+  transition: opacity 900ms var(--ease-out);
+}
+[data-3d="ready"] .hero-canvas {
+  opacity: 1;
+}
+[data-hero-mark] {
+  transition:
+    opacity 700ms var(--ease-out) 150ms,
+    visibility 0s linear 0s;
+}
+[data-3d="ready"] [data-hero-mark] {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 700ms var(--ease-out) 150ms,
+    visibility 0s linear 850ms;
+}
+.hero-caption {
+  opacity: 0;
+  transform: translateY(1.25rem);
+  transition:
+    opacity 380ms var(--ease-out),
+    transform 380ms var(--ease-out);
+}
+.hero-caption[data-on="true"] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 600ms var(--ease-out) 120ms,
+    transform 700ms var(--ease-expo) 120ms;
+}
+
+/* Endless rows (components/motion/marquee.tsx). */
+.marquee [role="region"] {
+  overflow: hidden;
+}
+.marquee-copy {
+  display: contents;
+}
+.marquee-track {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--marquee-gap, 2.5rem);
+  padding-right: var(--marquee-gap, 2.5rem);
+  animation: marquee var(--marquee-duration, 40s) linear infinite;
+}
+.marquee-track[data-reverse="true"] {
+  animation-direction: reverse;
+}
+@media (hover: hover) {
+  .marquee:hover .marquee-track {
+    animation-play-state: paused;
+  }
+}
+.marquee[data-paused="true"] .marquee-track,
+.marquee [role="region"]:focus-visible .marquee-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee [role="region"] {
+    overflow-x: auto;
+  }
+  .marquee-track {
+    animation: none;
+  }
+  .marquee-track[aria-hidden="true"],
+  .marquee-copy {
+    display: none;
+  }
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* Cards that lean toward the pointer (components/motion/tilt.tsx). */
+.tilt {
+  transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 600ms var(--ease-out);
+}
+.tilt-pop {
+  transform: translateZ(42px);
+}
+
+/* Process steps: the one being read is bright, the rest wait (_home/process-steps.tsx). Only
+   where the steps sit beside a sticky heading; stacked on a phone they all stay readable. */
+@media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
+  .js [data-step] > * {
+    transition: opacity 400ms var(--ease-out);
+  }
+  /* Dimmed but still legible: large headings stay above 3:1, the paragraphs above 4.5:1. */
+  .js [data-step][data-active="false"] > h3 {
+    opacity: 0.4;
+  }
+  .js [data-step][data-active="false"] > p {
+    opacity: 0.75;
+  }
+}
+
+/* Scripts never arrived (see the head script): nothing stays waiting for an animation. */
+.no-hydrate [data-reveal],
+.no-hydrate [data-reveal-mask],
+.no-hydrate [data-step] > * {
+  opacity: 1 !important;
+  transform: none !important;
+  clip-path: none !important;
+}
+
+/* Mobile menu rows arrive one after another when the panel opens. */
+@media (prefers-reduced-motion: no-preference) {
+  .menu-item {
+    animation: menu-in 460ms var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 45ms + 90ms);
+  }
+}
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* Load sequence for headlines: lines rise from behind their own baseline. */
+.lines .line {
+  display: block;
+  overflow: clip;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.lines [data-line] {
+  display: block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .js .lines [data-line] {
+    transform: translateY(105%);
+    animation: line-up 900ms var(--ease-expo) forwards;
+    animation-delay: calc(var(--i, 0) * 110ms + 120ms);
+  }
+  .js [data-load] {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: load-rise 520ms var(--ease-out) forwards;
+    animation-delay: var(--d, 420ms);
+  }
+  /* Section parts start hidden only when scripts run; GSAP reveals them in reading order. */
+  .js [data-reveal] {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  .js [data-reveal-mask] {
+    clip-path: inset(0 0 100% 0);
+  }
+  .js .reveal-off [data-reveal],
+  .js .reveal-off [data-reveal-mask] {
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer::after {
+    animation: none;
+    display: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+@keyframes word-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.25em);
+  }
+}
+
+@keyframes line-up {
+  to {
+    transform: none;
+  }
+}
+@keyframes load-rise {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Lenis smooth scroll. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}

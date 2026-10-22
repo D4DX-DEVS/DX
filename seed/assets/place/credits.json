@@ -1,0 +1,50 @@
+[
+ {
+  "file": "assets/kozhikode-beach-coastline.jpg",
+  "media": "image",
+  "ref": "openverse:6cf89d21-be3c-4f0d-bd8c-cb54721fef85",
+  "title": "Kozhikode Beach Coastline",
+  "creator": "Sulyab Thottungal",
+  "creatorUrl": "https://commons.wikimedia.org/w/index.php?title=User:Sulyabtv&action=edit&redlink=1",
+  "date": null,
+  "license": "CC BY-SA 4.0",
+  "licenseCode": "by-sa",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "creditRequired": true,
+  "page": "https://commons.wikimedia.org/w/index.php?curid=48507623",
+  "via": "Wikimedia Commons",
+  "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Kozhikode_Beach_Coastline.jpg/1920px-Kozhikode_Beach_Coastline.jpg",
+  "width": 1920,
+  "height": 824,
+  "bytes": 305238,
+  "credit": "\"Kozhikode Beach Coastline\" by Sulyab Thottungal, CC BY-SA 4.0, via Wikimedia Commons",
+  "notes": [
+   "Share-alike: an altered version (recoloured, combined with other pictures) must be shared under the same licence."
+  ],
+  "saved": "2026-10-20T11:38:21.815Z"
+ },
+ {
+  "file": "assets/ksrtc-bus-station-mavoor-road-kozhikode.jpg",
+  "media": "image",
+  "ref": "commons:46005259",
+  "title": "KSRTC Bus Station, Mavoor Road, Kozhikode",
+  "creator": "Prof tpms",
+  "creatorUrl": null,
+  "date": "2015-12-31",
+  "license": "CC BY-SA 4.0",
+  "licenseCode": "by-sa",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+  "creditRequired": true,
+  "page": "https://commons.wikimedia.org/wiki/File:KSRTC_Bus_Station,_Mavoor_Road,_Kozhikode.jpg",
+  "via": "Wikimedia Commons",
+  "image": "https://upload.wikimedia.org/wikipedia/commons/6/65/KSRTC_Bus_Station%2C_Mavoor_Road%2C_Kozhikode.jpg",
+  "width": 1536,
+  "height": 2560,
+  "bytes": 1452771,
+  "credit": "\"KSRTC Bus Station, Mavoor Road, Kozhikode\" by Prof tpms, CC BY-SA 4.0, via Wikimedia Commons",
+  "notes": [
+   "Share-alike: an altered version (recoloured, combined with other pictures) must be shared under the same licence."
+  ],
+  "saved": "2026-10-20T11:38:23.606Z"
+ }
+]

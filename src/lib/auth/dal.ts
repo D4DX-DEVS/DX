@@ -1,0 +1,39 @@
+import "server-only";
+import { cache } from "react";
+import { redirect } from "next/navigation";
+import { connectDB } from "@/lib/db";
+import { AdminUser } from "@/lib/models";
+import { readSession } from "./session";
+
+export interface AdminIdentity {
+  id: string;
+  name: string;
+  email: string;
+  role: "owner" | "editor";
+}
+
+/**
+ * The data access layer's one gate. Verifies the cookie, then confirms the account still
+ * exists and the token has not been revoked (password change bumps tokenVersion).
+ * Deduplicated per request with React.cache, so several components can call it freely.
+ */
+export const getAdmin = cache(async (): Promise<AdminIdentity | null> => {
+  const session = await readSession();
+  if (!session) return null;
+  await connectDB();
+  const user = await AdminUser.findById(session.sub, { name: 1, email: 1, role: 1, tokenVersion: 1 }).lean();
+  if (!user || user.tokenVersion !== session.v) return null;
+  return { id: String(user._id), name: user.name, email: user.email, role: user.role === "owner" ? "owner" : "editor" };
+});
+
+export async function requireAdmin(): Promise<AdminIdentity> {
+  const admin = await getAdmin();
+  if (!admin) redirect("/admin/login");
+  return admin;
+}
+
+export async function requireOwner(): Promise<AdminIdentity> {
+  const admin = await requireAdmin();
+  if (admin.role !== "owner") redirect("/admin");
+  return admin;
+}
