@@ -1,8 +1,8 @@
 import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
-import { connectDB } from "@/lib/db";
-import { AdminUser } from "@/lib/models";
+import { first } from "@/lib/db";
+import type { AdminUserRow } from "@/lib/models";
 import { readSession } from "./session";
 
 export interface AdminIdentity {
@@ -20,10 +20,12 @@ export interface AdminIdentity {
 export const getAdmin = cache(async (): Promise<AdminIdentity | null> => {
   const session = await readSession();
   if (!session) return null;
-  await connectDB();
-  const user = await AdminUser.findById(session.sub, { name: 1, email: 1, role: 1, tokenVersion: 1 }).lean();
-  if (!user || user.tokenVersion !== session.v) return null;
-  return { id: String(user._id), name: user.name, email: user.email, role: user.role === "owner" ? "owner" : "editor" };
+  const user = await first<Pick<AdminUserRow, "id" | "name" | "email" | "role" | "token_version">>(
+    "SELECT id, name, email, role, token_version FROM admin_users WHERE id = ?",
+    [session.sub],
+  );
+  if (!user || user.token_version !== session.v) return null;
+  return { id: user.id, name: user.name, email: user.email, role: user.role === "owner" ? "owner" : "editor" };
 });
 
 export async function requireAdmin(): Promise<AdminIdentity> {

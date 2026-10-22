@@ -16,7 +16,8 @@ export const inquirySchema = z.object({
 });
 export type InquiryInput = z.infer<typeof inquirySchema>;
 
-const optionalUrl = z.union([z.literal(""), z.url("Enter a full link starting with https://").max(300)]);
+// http(s) only: these links are shown to admins, so other schemes (javascript:, data:) are refused.
+const optionalUrl = z.union([z.literal(""), z.url({ protocol: /^https?$/, message: "Enter a full link starting with https://" }).max(300)]);
 
 export const applicationSchema = z.object({
   position: z.string().trim().min(1, "Choose a position.").max(100),

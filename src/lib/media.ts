@@ -1,15 +1,15 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { mkdir, unlink, writeFile } from "node:fs/promises";
-import path from "node:path";
 import sharp from "sharp";
-import { mediaRoot, privateRoot } from "@/lib/env";
 import { IMAGE_FORMATS, MAX_IMAGE_BYTES, MAX_PDF_BYTES, looksLikePdf } from "@/lib/media-utils";
 import type { MediaDoc } from "@/lib/models/shared";
+import { deleteObject, getObject, mediaKeyFromUrl, publicMediaUrl, putObject, type StoredObject } from "@/lib/storage";
 
 export class MediaError extends Error {}
 
 const MAX_WIDTH = 2000;
+// Keys are random UUIDs and never rewritten, so CDN and browsers can keep them forever.
+export const MEDIA_CACHE_CONTROL = "public, max-age=31536000, immutable";
 
 /** Re-encodes any accepted upload as WebP (strips metadata), and makes a tiny blurred placeholder. */
 export async function processImage(input: Buffer, alt = ""): Promise<MediaDoc> {
@@ -34,13 +34,11 @@ export async function processImage(input: Buffer, alt = ""): Promise<MediaDoc> {
   const now = new Date();
   const year = String(now.getFullYear());
   const month = String(now.getMonth() + 1).padStart(2, "0");
-  const file = `${randomUUID()}.webp`;
-  const dir = path.join(mediaRoot(), year, month);
-  await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, file), data);
+  const key = `media/${year}/${month}/${randomUUID()}.webp`;
+  await putObject("public", key, data, "image/webp", MEDIA_CACHE_CONTROL);
 
   return {
-    url: `/media/${year}/${month}/${file}`,
+    url: publicMediaUrl(key),
     width: info.width,
     height: info.height,
     blur: `data:image/webp;base64,${blurBuffer.toString("base64")}`,
@@ -48,12 +46,10 @@ export async function processImage(input: Buffer, alt = ""): Promise<MediaDoc> {
   };
 }
 
-/** Removes a file previously written by processImage. Unknown or foreign URLs are ignored. */
+/** Removes an object previously written by processImage. Unknown or foreign URLs are ignored. */
 export async function deleteMedia(url: string | null | undefined): Promise<void> {
-  if (!url?.startsWith("/media/")) return;
-  const target = path.resolve(mediaRoot(), url.slice("/media/".length));
-  if (!target.startsWith(mediaRoot() + path.sep)) return;
-  await unlink(target).catch(() => undefined);
+  const key = mediaKeyFromUrl(url);
+  if (key) await deleteObject("public", key).catch(() => undefined);
 }
 
 export async function deleteMediaList(urls: Iterable<string | null | undefined>): Promise<void> {
@@ -66,23 +62,26 @@ export interface StoredFile {
   size: number;
 }
 
-/** Résumés are kept outside the public media folder and only served to signed-in admins. */
+/** Résumés are kept under private/ (never behind the public media URL) and only served to signed-in admins. */
 export async function savePrivatePdf(input: Buffer, originalName: string): Promise<StoredFile> {
   if (input.byteLength > MAX_PDF_BYTES) throw new MediaError("The résumé must be 5 MB or smaller.");
   if (!looksLikePdf(input)) throw new MediaError("The résumé must be a PDF file.");
   const file = `resumes/${randomUUID()}.pdf`;
-  const target = path.join(privateRoot(), file);
-  await mkdir(path.dirname(target), { recursive: true });
-  await writeFile(target, input);
+  await putObject("private", `private/${file}`, input, "application/pdf");
   return { file, name: originalName.slice(0, 120), size: input.byteLength };
 }
 
-export function privateFilePath(file: string): string | null {
-  if (!/^resumes\/[0-9a-f-]{36}\.pdf$/.test(file)) return null;
-  return path.join(privateRoot(), file);
+function privateKey(file: string): string | null {
+  return /^resumes\/[0-9a-f-]{36}\.pdf$/.test(file) ? `private/${file}` : null;
+}
+
+/** Streams a stored résumé. Callers must check the admin session first. */
+export async function getPrivateFile(file: string): Promise<StoredObject | null> {
+  const key = privateKey(file);
+  return key ? getObject("private", key) : null;
 }
 
 export async function deletePrivateFile(file: string): Promise<void> {
-  const target = privateFilePath(file);
-  if (target) await unlink(target).catch(() => undefined);
+  const key = privateKey(file);
+  if (key) await deleteObject("private", key).catch(() => undefined);
 }

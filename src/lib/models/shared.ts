@@ -1,6 +1,4 @@
-import { Schema } from "mongoose";
-
-/** A processed image stored under MEDIA_DIR and served from /media. */
+/** A processed image stored in R2 under media/, served from R2_PUBLIC_URL or the /media proxy. */
 export interface MediaDoc {
   url: string;
   width: number;
@@ -8,17 +6,6 @@ export interface MediaDoc {
   blur: string;
   alt: string;
 }
-
-export const MediaSchema = new Schema<MediaDoc>(
-  {
-    url: { type: String, required: true },
-    width: { type: Number, required: true },
-    height: { type: Number, required: true },
-    blur: { type: String, default: "" },
-    alt: { type: String, default: "", maxlength: 200 },
-  },
-  { _id: false },
-);
 
 export const PUBLISH_STATUSES = ["published", "draft"] as const;
 export type PublishStatus = (typeof PUBLISH_STATUSES)[number];

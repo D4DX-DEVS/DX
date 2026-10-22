@@ -1,15 +1,21 @@
 import type { NextConfig } from "next";
 
+// Images uploaded to R2 are linked straight from its public domain when one is configured.
+const r2Public = process.env.R2_PUBLIC_URL ? new URL(process.env.R2_PUBLIC_URL) : null;
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
   // Lets phones on the same Wi-Fi open the dev server (e.g. http://192.168.1.17:3233). Dev only.
   allowedDevOrigins: ["192.168.*.*", "10.*.*.*"],
-  serverExternalPackages: ["mongoose", "sharp"],
+  serverExternalPackages: ["sharp"],
   images: {
-    // Uploaded media is served by app/media/[...path]/route.ts and optimised by next/image.
+    // Uploaded media lives in R2: served from R2_PUBLIC_URL, or proxied by app/media/[...path]/route.ts.
     localPatterns: [{ pathname: "/media/**", search: "" }, { pathname: "/brand/**", search: "" }],
+    remotePatterns: r2Public
+      ? [{ protocol: r2Public.protocol === "http:" ? "http" : "https", hostname: r2Public.hostname, pathname: "/media/**", search: "" }]
+      : [],
     qualities: [70, 80],
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30,

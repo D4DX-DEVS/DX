@@ -1,4 +1,3 @@
-import type { Types } from "mongoose";
 import type { Media } from "@/lib/types";
 
 interface RawMedia {
@@ -22,10 +21,6 @@ export function toMedia(raw: RawMedia | null | undefined): Media | null {
 
 export function toMediaList(raw: RawMedia[] | null | undefined): Media[] {
   return (raw ?? []).map(toMedia).filter((m): m is Media => m !== null);
-}
-
-export function id(value: Types.ObjectId | string): string {
-  return String(value);
 }
 
 export function iso(date: Date | string | null | undefined): string | null {

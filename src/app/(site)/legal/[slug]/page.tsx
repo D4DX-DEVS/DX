@@ -9,7 +9,8 @@ import { sanitizeRichText } from "@/lib/sanitize";
 
 export async function generateStaticParams() {
   const pages = await getLegalSlugs();
-  return pages.map((p) => ({ slug: p.slug }));
+  // Cache Components needs at least one param; on an empty database the placeholder renders notFound().
+  return pages.length ? pages.map((p) => ({ slug: p.slug })) : [{ slug: "__empty" }];
 }
 
 export async function generateMetadata({ params }: PageProps<"/legal/[slug]">): Promise<Metadata> {

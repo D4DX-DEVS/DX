@@ -17,7 +17,8 @@ const PLATFORM_LABEL: Record<Platform, string> = { android: "Android", ios: "iOS
 /** Every published project is prerendered; new ones render on their first visit. */
 export async function generateStaticParams() {
   const index = await getProjectIndex();
-  return index.map((p) => ({ slug: p.slug }));
+  // Cache Components needs at least one param; on an empty database the placeholder renders notFound().
+  return index.length ? index.map((p) => ({ slug: p.slug })) : [{ slug: "__empty" }];
 }
 
 export async function generateMetadata({ params }: PageProps<"/work/[slug]">): Promise<Metadata> {

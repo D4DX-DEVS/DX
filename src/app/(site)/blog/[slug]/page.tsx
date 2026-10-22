@@ -14,7 +14,8 @@ import { Cta } from "../../_home/cta";
 /** Every published post is prerendered; new ones render on their first visit. */
 export async function generateStaticParams() {
   const slugs = await getPostSlugs();
-  return slugs.map((slug) => ({ slug }));
+  // Cache Components needs at least one param; on an empty database the placeholder renders notFound().
+  return slugs.length ? slugs.map((slug) => ({ slug })) : [{ slug: "__empty" }];
 }
 
 export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): Promise<Metadata> {

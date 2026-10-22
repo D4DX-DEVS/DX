@@ -1,13 +1,23 @@
 import "server-only";
-import path from "node:path";
 import { z } from "zod";
 
 const schema = z.object({
-  MONGODB_URI: z.string().min(1, "MONGODB_URI is required"),
+  // Cloudflare D1, reached over the Cloudflare HTTP API (token needs D1 edit permission).
+  CLOUDFLARE_ACCOUNT_ID: z.string().min(1, "CLOUDFLARE_ACCOUNT_ID is required"),
+  CLOUDFLARE_API_TOKEN: z.string().min(1, "CLOUDFLARE_API_TOKEN is required"),
+  D1_DATABASE_ID: z.string().min(1, "D1_DATABASE_ID is required"),
   AUTH_SECRET: z.string().min(32, "AUTH_SECRET must be at least 32 characters"),
   SITE_URL: z.url().default("http://localhost:3233"),
-  MEDIA_DIR: z.string().default("storage/media"),
-  PRIVATE_DIR: z.string().default("storage/private"),
+  // Cloudflare R2 (S3 API). Images go to R2_BUCKET_NAME under media/, résumés under private/
+  // in R2_PRIVATE_BUCKET_NAME (falls back to the media bucket; use a separate one if that bucket is public).
+  R2_ACCOUNT_ID: z.string().min(1, "R2_ACCOUNT_ID is required"),
+  R2_ACCESS_KEY_ID: z.string().min(1, "R2_ACCESS_KEY_ID is required"),
+  R2_SECRET_ACCESS_KEY: z.string().min(1, "R2_SECRET_ACCESS_KEY is required"),
+  R2_BUCKET_NAME: z.string().min(1, "R2_BUCKET_NAME is required"),
+  R2_PRIVATE_BUCKET_NAME: z.string().optional(),
+  R2_ENDPOINT: z.url().optional(),
+  // Public bucket domain (custom domain or r2.dev). When unset, images are proxied through /media.
+  R2_PUBLIC_URL: z.url().optional(),
   DEBUG_DB: z.enum(["0", "1"]).default("0"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
@@ -20,12 +30,4 @@ let cached: Env | null = null;
 export function env(): Env {
   if (!cached) cached = schema.parse(process.env);
   return cached;
-}
-
-export function mediaRoot(): string {
-  return path.resolve(process.cwd(), env().MEDIA_DIR);
-}
-
-export function privateRoot(): string {
-  return path.resolve(process.cwd(), env().PRIVATE_DIR);
 }

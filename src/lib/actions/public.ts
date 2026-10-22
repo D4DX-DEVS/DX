@@ -2,11 +2,10 @@
 
 import { z } from "zod";
 import { FORM_RULE, hit } from "@/lib/auth/throttle";
-import { connectDB } from "@/lib/db";
+import { newId, nowIso, run } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { MediaError, savePrivatePdf } from "@/lib/media";
 import { MAX_PDF_BYTES } from "@/lib/media-utils";
-import { Application, Inquiry } from "@/lib/models";
 import { clientIp } from "@/lib/request";
 import { applicationSchema, inquirySchema, type InquiryInput } from "@/lib/schemas/forms";
 import type { ActionResult } from "@/lib/types";
@@ -23,9 +22,12 @@ export async function submitInquiry(input: InquiryInput): Promise<ActionResult> 
 
   try {
     if (!(await hit("inquiry", [await clientIp()], FORM_RULE))) return BUSY;
-    await connectDB();
-    // Mongoose's strict schema drops the honeypot field.
-    await Inquiry.create(parsed.data);
+    const { name, email, phone, service, message } = parsed.data;
+    const now = nowIso();
+    await run(
+      "INSERT INTO inquiries (id, name, email, phone, service, message, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'new', ?, ?)",
+      [newId(), name, email, phone, service, message, now, now],
+    );
     return { ok: true };
   } catch (error: unknown) {
     logger.error("inquiry failed", error);
@@ -65,8 +67,13 @@ export async function submitApplication(form: FormData): Promise<ActionResult> {
   try {
     if (!(await hit("application", [await clientIp()], FORM_RULE))) return BUSY;
     const stored = await savePrivatePdf(Buffer.from(await resume.arrayBuffer()), resume.name);
-    await connectDB();
-    await Application.create({ ...parsed.data, resume: stored });
+    const d = parsed.data;
+    const now = nowIso();
+    await run(
+      `INSERT INTO applications (id, position, name, email, phone, experience, portfolio_url, github_url, message, resume, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?, ?)`,
+      [newId(), d.position, d.name, d.email, d.phone, d.experience, d.portfolioUrl, d.githubUrl, d.message, stored, now, now],
+    );
     return { ok: true };
   } catch (error: unknown) {
     if (error instanceof MediaError) return { ok: false, message: error.message, fieldErrors: { resume: [error.message] } };

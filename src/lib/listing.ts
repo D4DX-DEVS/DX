@@ -50,9 +50,14 @@ export function toPaginated<T>(data: T[], total: number, page: number, pageSize:
   return { data, page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) };
 }
 
-/** Escapes user input for use inside a RegExp (Mongo $regex). */
+/** Escapes user input for use inside a RegExp. */
 export function escapeRegex(input: string): string {
   return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Escapes user input for a SQL LIKE pattern used with ESCAPE '\'. */
+export function escapeLike(input: string): string {
+  return input.replace(/[\\%_]/g, "\\$&");
 }
 
 export function slugify(input: string): string {
