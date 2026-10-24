@@ -118,7 +118,7 @@ export function JobForm({ id, initial }: JobFormProps) {
         pending={isSubmitting}
         dirty={isDirty}
         label={id ? "Save changes" : "Create job"}
-        start={id ? <DeleteButton name={initial.title} consequence="It disappears from the careers page." action={deleteJob.bind(null, id)} redirectTo="/admin/jobs" /> : null}
+        start={id ? <DeleteButton name={initial.title} consequence="It disappears from the Join Our Team page." action={deleteJob.bind(null, id)} redirectTo="/admin/jobs" /> : null}
       />
     </form>
   );

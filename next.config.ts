@@ -17,11 +17,11 @@ const nextConfig: NextConfig = {
       ? [{ protocol: r2Public.protocol === "http:" ? "http" : "https", hostname: r2Public.hostname, pathname: "/media/**", search: "" }]
       : [],
     qualities: [70, 80],
-    formats: ["image/avif", "image/webp"],
+    formats: ["image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30,
   },
   experimental: {
-    serverActions: { bodySizeLimit: "10mb" },
+    serverActions: { bodySizeLimit: "30mb" },
   },
   cacheLife: {
     // Content edited from the admin: kept until an admin save calls updateTag().

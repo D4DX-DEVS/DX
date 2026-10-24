@@ -1,9 +1,10 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "@/components/icons";
 import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
 import { getProjectIndex, getTestimonials } from "@/lib/data/public";
 import type { ProjectIndexEntry, TestimonialDTO } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { TitleFx } from "@/components/motion/title-fx";
 
 function initials(name: string): string {
   return name
@@ -85,9 +86,9 @@ export async function Voices() {
   return (
     <section aria-labelledby="voices-title" className="frame pt-[var(--section-gap)]">
       <Reveal stagger={0.1}>
-        <h2 id="voices-title" data-reveal className="text-[length:var(--step-head)] leading-tight font-semibold tracking-[-0.02em]">
+        <TitleFx as="h2" id="voices-title" data-reveal className="text-[length:var(--step-head)] leading-tight font-semibold tracking-[-0.02em]">
           In their words
-        </h2>
+        </TitleFx>
         <div className="mt-8 grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-12">
           {shown.map((v, i) => (
             <Voice key={v.id} voice={v} project={bySlug.get(v.projectSlug)} lead={i === 0} span={spanFor(i, shown.length)} />

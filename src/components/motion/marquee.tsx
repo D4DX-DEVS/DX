@@ -1,6 +1,6 @@
 "use client";
 
-import { Pause, Play } from "lucide-react";
+import { Pause, Play } from "@/components/icons";
 import { Fragment, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -84,6 +84,20 @@ export function PostForm({ id, initial, publicSlug }: PostFormProps) {
             <Field id="excerpt" label="Excerpt" optional hint="Shown on the blog list. Left empty, it is taken from the start of the post." error={errors.excerpt?.message}>
               <Textarea id="excerpt" rows={3} maxLength={320} aria-describedby={err("excerpt") ?? "excerpt-hint"} {...register("excerpt")} />
             </Field>
+          </FormSection>
+
+          <FormSection title="Links" description="Optional. Shown beside the post as a website button and store badges.">
+            {(
+              [
+                ["website", "Website", "https://"],
+                ["playStore", "Google Play", "https://play.google.com/store/apps/details?id=…"],
+                ["appStore", "App Store", "https://apps.apple.com/…"],
+              ] as const
+            ).map(([key, label, placeholder]) => (
+              <Field key={key} id={key} label={label} optional error={errors[key]?.message}>
+                <Input id={key} type="url" placeholder={placeholder} aria-invalid={Boolean(errors[key])} {...register(key)} />
+              </Field>
+            ))}
           </FormSection>
 
           <FormSection title="Content">

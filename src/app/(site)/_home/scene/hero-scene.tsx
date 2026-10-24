@@ -5,12 +5,13 @@ import { Environment, Lightformer, PerformanceMonitor } from "@react-three/drei"
 import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import { Suspense, useRef, useState } from "react";
 import * as THREE from "three";
+import { CodeField } from "./code-field";
 import { Dust } from "./dust";
 import { Mark3D } from "./mark-3d";
 import { Panels } from "./panels";
 import { activePanel, CAMERA_FOV, CAMERA_START_Z, cameraZ, captionIndex, panelPosition, travel, wordmarkZ } from "./path";
 import { heroState } from "./state";
-import { Wordmark3D } from "./wordmark-3d";
+import { Logo3D } from "./logo-3d";
 
 const GROUND = "#070a12";
 const LOOK = new THREE.Vector3();
@@ -40,15 +41,18 @@ function Rig({ count, wide, onCaption }: RigProps) {
       onCaption(nextCaption);
     }
 
-    // No parallax at rest, so the 3D mark first appears exactly over the flat one.
+    // The pointer steers the view all the time: the camera slides toward it and turns to look where it points
+    // (still at rest, since the pointer starts centred, so the 3D mark first lands exactly on the flat one).
     const reach = Math.min(1, p / 0.06);
     const lit = activePanel(p, count);
     const weave = lit >= 0 ? panelPosition(lit, wide)[0] * 0.2 : 0;
     const cam = state.camera;
-    cam.position.x = THREE.MathUtils.damp(cam.position.x, weave + state.pointer.x * (wide ? 0.35 : 0.15) * reach, 3, dt);
-    cam.position.y = THREE.MathUtils.damp(cam.position.y, state.pointer.y * 0.2 * reach, 3, dt);
+    const px = state.pointer.x;
+    const py = state.pointer.y;
+    cam.position.x = THREE.MathUtils.damp(cam.position.x, weave + px * (wide ? 0.55 : 0.3), 3, dt);
+    cam.position.y = THREE.MathUtils.damp(cam.position.y, py * (wide ? 0.35 : 0.2), 3, dt);
     cam.position.z = cameraZ(p, count);
-    LOOK.set(cam.position.x * 0.4, cam.position.y * 0.4, cam.position.z - 8);
+    LOOK.set(cam.position.x * 0.4 + px * (wide ? 1.7 : 1), cam.position.y * 0.4 + py * (wide ? 1 : 0.6), cam.position.z - 8);
     cam.lookAt(LOOK);
     light.current?.position.set(cam.position.x, cam.position.y + 0.6, cam.position.z - 2.5);
 
@@ -103,8 +107,9 @@ function World({ panels, stage, effects, onReady, onCaption }: WorldProps) {
         <Panels srcs={panels} wide={wide} />
         <Ready onReady={onReady} />
       </Suspense>
-      <Wordmark3D count={count} wide={wide} />
-      <Dust near={CAMERA_START_Z + 2} far={wordmarkZ(count) - 4} amount={wide ? 1400 : 600} travel={travel(count)} />
+      <Logo3D count={count} wide={wide} />
+      <CodeField near={CAMERA_START_Z + 2} far={wordmarkZ(count) - 4} glyphs={wide ? 260 : 120} nodes={wide ? 190 : 90} />
+      <Dust near={CAMERA_START_Z + 2} far={wordmarkZ(count) - 4} amount={wide ? 650 : 280} travel={travel(count)} />
       {effects ? (
         <EffectComposer multisampling={4}>
           <Bloom mipmapBlur luminanceThreshold={1} intensity={0.85} radius={0.75} />

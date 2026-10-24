@@ -41,6 +41,8 @@ export interface ProjectRow extends Timestamps {
   links: Json;
   cover: Json;
   gallery: Json;
+  /** A short looping preview (an uploaded /media/videos path or an https link), or empty. */
+  video: string;
   featured: Bool;
   status: PublishStatus;
   sort_order: number;
@@ -69,6 +71,8 @@ export interface TeamMemberRow extends Timestamps {
   name: string;
   role: string;
   photo: Json | null;
+  /** The photo drawn as a pencil sketch, made when the photo is saved. */
+  photo_sketch: Json | null;
   linkedin: string;
   published: Bool;
   sort_order: number;
@@ -93,6 +97,9 @@ export interface PostRow extends Timestamps {
   content: string;
   cover: Json | null;
   tags: Json;
+  website: string;
+  play_store: string;
+  app_store: string;
   status: PublishStatus;
   published_at: string | null;
 }
@@ -140,6 +147,10 @@ export interface ApplicationRow extends Timestamps {
   github_url: string;
   message: string;
   resume: Json;
+  /** Optional extra file (certifications), stored like the résumé; "" when none. */
+  certificates: Json | string;
+  /** The longer form's answers (address, education, skills, projects...) as JSON. */
+  details: Json;
   status: InboxStatus;
 }
 
@@ -148,6 +159,8 @@ export interface PageRow extends Timestamps {
   slug: string;
   title: string;
   content: string;
+  /** "legal" (footer and /legal) or "careers" (the Join Our Team page). */
+  section: string;
 }
 
 export interface SettingsData {

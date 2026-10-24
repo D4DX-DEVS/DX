@@ -1,7 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/dal";
-import { first, json } from "@/lib/db";
+import { all, first, json } from "@/lib/db";
 import { listQuerySchema, parseSearchParams, type Paginated, type SearchParamsRecord } from "@/lib/listing";
 import type { JobRow } from "@/lib/models";
 import type { JobInput } from "@/lib/schemas/admin";
@@ -21,6 +21,7 @@ export interface JobListRow {
   title: string;
   slug: string;
   level: string;
+  experience: string;
   location: string;
   open: 0 | 1;
   sort_order: number;
@@ -35,7 +36,7 @@ export async function listJobs(params: SearchParamsRecord): Promise<Paginated<Jo
   return listPage<JobListRow>(
     {
       from: "jobs",
-      select: "id, title, slug, level, location, open, sort_order, updated_at",
+      select: "id, title, slug, level, experience, location, open, sort_order, updated_at",
       search: ["title", "slug", "level", "location"],
       sorts: { order: "sort_order", title: "title COLLATE NOCASE", updated: "updated_at" },
       where,
@@ -43,6 +44,19 @@ export async function listJobs(params: SearchParamsRecord): Promise<Paginated<Jo
     },
     q,
   );
+}
+
+/** Every position, closed ones too, in the order the site lists them (the reorder screen has no paging). */
+export async function listJobsInOrder(): Promise<JobListRow[]> {
+  await requireAdmin();
+  return all<JobListRow>("SELECT id, title, slug, level, experience, location, open, sort_order, updated_at FROM jobs ORDER BY sort_order ASC, created_at DESC");
+}
+
+/** A position that takes the top of the list: one place before the current first. */
+export async function topJobOrder(): Promise<number> {
+  await requireAdmin();
+  const row = await first<{ n: number | null }>("SELECT MIN(sort_order) AS n FROM jobs");
+  return row?.n == null ? 0 : row.n - 1;
 }
 
 export interface JobEdit {

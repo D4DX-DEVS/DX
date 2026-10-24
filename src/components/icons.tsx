@@ -1,0 +1,141 @@
+import type { Icon, IconProps } from "@phosphor-icons/react";
+import * as P from "@phosphor-icons/react/ssr";
+import { forwardRef } from "react";
+
+/**
+ * The site's icons, in one place. Phosphor draws them (a consistent grid, optical sizing and a
+ * duotone weight for feature icons); the names below are the ones the pages already use, so
+ * swapping the set later means editing this file only. Sizes come from the caller's class
+ * (`size-4`); with none they are 24px. Pass `weight="duotone"` for the marketing icons.
+ */
+export type LucideIcon = Icon;
+
+function adapt(Icon: Icon): Icon {
+  const Adapted = forwardRef<SVGSVGElement, IconProps>((props, ref) => <Icon ref={ref} size={24} {...props} />);
+  Adapted.displayName = Icon.displayName;
+  return Adapted;
+}
+
+export const Archive = adapt(P.Archive);
+export const Lock = adapt(P.LockSimple);
+export const Bell = adapt(P.Bell);
+export const ChevronsLeft = adapt(P.CaretDoubleLeft);
+export const ChevronsRight = adapt(P.CaretDoubleRight);
+export const ArrowDown = adapt(P.ArrowDown);
+export const ArrowDownWideNarrow = adapt(P.SortDescending);
+export const ArrowLeft = adapt(P.ArrowLeft);
+export const ArrowRight = adapt(P.ArrowRight);
+export const ArrowUp = adapt(P.ArrowUp);
+export const ArrowUpDown = adapt(P.ArrowsDownUp);
+export const ArrowUpNarrowWide = adapt(P.SortAscending);
+export const ArrowUpRight = adapt(P.ArrowUpRight);
+export const Bold = adapt(P.TextB);
+export const Briefcase = adapt(P.Briefcase);
+export const BriefcaseBusiness = adapt(P.Briefcase);
+export const CalendarDays = adapt(P.CalendarBlank);
+export const Check = adapt(P.Check);
+export const CheckIcon = adapt(P.Check);
+export const ChevronDown = adapt(P.CaretDown);
+export const ChevronDownIcon = adapt(P.CaretDown);
+export const ChevronLeft = adapt(P.CaretLeft);
+export const ChevronRight = adapt(P.CaretRight);
+export const ChevronRightIcon = adapt(P.CaretRight);
+export const ChevronUp = adapt(P.CaretUp);
+export const ChevronUpIcon = adapt(P.CaretUp);
+export const Circle = adapt(P.Circle);
+export const CircleAlert = adapt(P.WarningCircle);
+export const CircleCheck = adapt(P.CheckCircle);
+export const CircleCheckIcon = adapt(P.CheckCircle);
+export const CircleDashed = adapt(P.CircleDashed);
+export const Clock = adapt(P.Clock);
+export const Cloud = adapt(P.CloudArrowUp);
+export const CodeXml = adapt(P.Code);
+export const Download = adapt(P.DownloadSimple);
+export const ExternalLink = adapt(P.ArrowSquareOut);
+export const Eye = adapt(P.Eye);
+export const EyeOff = adapt(P.EyeSlash);
+export const FilePen = adapt(P.NotePencil);
+export const FileText = adapt(P.FileText);
+export const FolderKanban = adapt(P.Kanban);
+export const Globe = adapt(P.GlobeHemisphereWest);
+export const GraduationCap = adapt(P.GraduationCap);
+export const GripVertical = adapt(P.DotsSixVertical);
+export const Heading2 = adapt(P.TextHTwo);
+export const Heading3 = adapt(P.TextHThree);
+export const HeartHandshake = adapt(P.Handshake);
+export const ImagePlus = adapt(P.ImageSquare);
+export const Inbox = adapt(P.Tray);
+export const InfoIcon = adapt(P.Info);
+export const Italic = adapt(P.TextItalic);
+export const Layers = adapt(P.Stack);
+export const LayoutDashboard = adapt(P.SquaresFour);
+export const Link2 = adapt(P.LinkSimple);
+export const List = adapt(P.ListBullets);
+export const ListOrdered = adapt(P.ListNumbers);
+export const Loader2 = adapt(P.CircleNotch);
+export const Loader2Icon = adapt(P.CircleNotch);
+export const LogIn = adapt(P.SignIn);
+export const LogOut = adapt(P.SignOut);
+export const Mail = adapt(P.Envelope);
+export const MapPin = adapt(P.MapPin);
+export const Menu = adapt(P.List);
+export const MessageCircle = adapt(P.ChatCircleDots);
+export const MessageSquareQuote = adapt(P.Quotes);
+export const Monitor = adapt(P.Desktop);
+export const Newspaper = adapt(P.Newspaper);
+export const OctagonXIcon = adapt(P.XCircle);
+export const Package = adapt(P.Package);
+export const Pause = adapt(P.Pause);
+export const Pencil = adapt(P.PencilSimple);
+export const Phone = adapt(P.Phone);
+export const Play = adapt(P.Play);
+export const Plus = adapt(P.Plus);
+export const Quote = adapt(P.Quotes);
+export const Redo2 = adapt(P.ArrowClockwise);
+export const RefreshCw = adapt(P.ArrowsClockwise);
+export const Rocket = adapt(P.RocketLaunch);
+export const RotateCw = adapt(P.ArrowClockwise);
+export const Save = adapt(P.FloppyDisk);
+export const Search = adapt(P.MagnifyingGlass);
+export const SearchX = adapt(P.MagnifyingGlass);
+export const Send = adapt(P.PaperPlaneTilt);
+export const Settings = adapt(P.GearSix);
+export const ShieldCheck = adapt(P.ShieldCheck);
+export const Smartphone = adapt(P.DeviceMobile);
+export const Sparkles = adapt(P.Sparkle);
+export const Star = adapt(P.Star);
+export const Trash2 = adapt(P.Trash);
+export const TriangleAlertIcon = adapt(P.Warning);
+export const Undo2 = adapt(P.ArrowCounterClockwise);
+export const Upload = adapt(P.UploadSimple);
+export const UserRound = adapt(P.User);
+export const Users = adapt(P.Users);
+export const X = adapt(P.X);
+export const XIcon = adapt(P.X);
+
+// Site navigation and social links (new names, not lucide aliases).
+export const House = adapt(P.House);
+export const UsersThree = adapt(P.UsersThree);
+export const Lightbulb = adapt(P.Lightbulb);
+export const FolderOpen = adapt(P.FolderOpen);
+export const UserPlus = adapt(P.UserPlus);
+export const Headset = adapt(P.Headset);
+export const FacebookLogo = adapt(P.FacebookLogo);
+export const InstagramLogo = adapt(P.InstagramLogo);
+export const LinkedinLogo = adapt(P.LinkedinLogo);
+export const WhatsappLogo = adapt(P.WhatsappLogo);
+export const AppleLogo = adapt(P.AppleLogo);
+export const Underline = adapt(P.TextUnderline);
+export const Strikethrough = adapt(P.TextStrikethrough);
+export const CodeBlock = adapt(P.CodeBlock);
+export const Minus = adapt(P.Minus);
+export const AlignLeft = adapt(P.TextAlignLeft);
+export const AlignCenter = adapt(P.TextAlignCenter);
+export const AlignRight = adapt(P.TextAlignRight);
+export const Eraser = adapt(P.Eraser);
+export const Heading4 = adapt(P.TextHFour);
+export const Copy = adapt(P.Copy);
+export const ShareNetwork = adapt(P.ShareNetwork);
+export const XLogo = adapt(P.XLogo);
+export const Check2 = adapt(P.CheckCircle);
+export const GooglePlayLogo = adapt(P.GooglePlayLogo);

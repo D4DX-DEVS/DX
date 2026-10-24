@@ -14,7 +14,7 @@ async function EditJob({ params }: { params: PageProps<"/admin/jobs/[id]">["para
   if (!job) notFound();
   return (
     <>
-      <PageHeader title={job.values.title} back={{ href: "/admin/jobs", label: "Jobs" }} />
+      <PageHeader title={job.values.title} back={{ href: "/admin/jobs", label: "Positions" }} />
       <JobForm id={job.id} initial={job.values} />
     </>
   );

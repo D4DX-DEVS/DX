@@ -3,7 +3,8 @@
 import { updateTag } from "next/cache";
 import { requireAdmin } from "@/lib/auth/dal";
 import { TAGS } from "@/lib/data/tags";
-import { first, newId, nowIso, run } from "@/lib/db";
+import { z } from "zod";
+import { batch, first, newId, nowIso, run } from "@/lib/db";
 import { jobSchema, type JobInput } from "@/lib/schemas/admin";
 import type { ActionResult } from "@/lib/types";
 import { idSchema, invalid, saveError } from "./shared";
@@ -36,6 +37,27 @@ export async function saveJob(id: string | null, input: JobInput): Promise<Actio
     return { ok: true, id: newIdValue };
   } catch (error: unknown) {
     return saveError(error, "save job");
+  }
+}
+
+const orderSchema = z
+  .array(idSchema)
+  .min(1)
+  .max(500)
+  .refine((ids) => new Set(ids).size === ids.length, "Each position can appear once.");
+
+/** Saves a new order for the positions: the first id becomes position 1, and so on. Takes every position, closed ones too. */
+export async function reorderJobs(ids: string[]): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = orderSchema.safeParse(ids);
+  if (!parsed.success) return { ok: false, message: "That order could not be read. Reload and try again." };
+  const now = nowIso();
+  try {
+    await batch(parsed.data.map((id, i) => ({ sql: "UPDATE jobs SET sort_order = ?, updated_at = ? WHERE id = ?", params: [i + 1, now, id] })));
+    updateTag(TAGS.jobs);
+    return { ok: true };
+  } catch (error: unknown) {
+    return saveError(error, "reorder jobs");
   }
 }
 

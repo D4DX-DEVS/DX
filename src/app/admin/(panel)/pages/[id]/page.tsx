@@ -14,7 +14,7 @@ async function EditPage({ params }: { params: PageProps<"/admin/pages/[id]">["pa
   if (!page) notFound();
   return (
     <>
-      <PageHeader title={page.values.title} back={{ href: "/admin/pages", label: "Legal pages" }} />
+      <PageHeader title={page.values.title} back={{ href: "/admin/pages", label: "Pages" }} />
       <PageForm id={page.id} initial={page.values} publicSlug={page.slug} />
     </>
   );

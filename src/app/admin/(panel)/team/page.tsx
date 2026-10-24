@@ -1,4 +1,4 @@
-import { Pencil, Plus, UserRound, Users } from "lucide-react";
+import { ArrowUpDown, Pencil, Plus, UserRound, Users } from "@/components/icons";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -51,7 +51,7 @@ async function TeamTable({ searchParams }: { searchParams: Search }) {
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto rounded-2xl border border-border bg-raised">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-raised shadow-[var(--shadow-card)]">
         <Table>
           <TableHeader>
             <TableRow>
@@ -110,12 +110,20 @@ export default function TeamPage({ searchParams }: PageProps<"/admin/team">) {
         title="Team"
         description="The people on the about page, in this order."
         actions={
-          <Button asChild className="bg-brand text-on-brand hover:bg-[var(--brand-strong)]">
-            <Link href="/admin/team/new">
-              <Plus className="size-4" aria-hidden="true" />
-              New team member
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline">
+              <Link href="/admin/team/order">
+                <ArrowUpDown className="size-4" aria-hidden="true" />
+                Reorder
+              </Link>
+            </Button>
+            <Button asChild className="bg-brand text-on-brand hover:bg-[var(--brand-strong)]">
+              <Link href="/admin/team/new">
+                <Plus className="size-4" aria-hidden="true" />
+                New team member
+              </Link>
+            </Button>
+          </div>
         }
       />
       <Suspense fallback={<ToolbarSkeleton filters={1} />}>

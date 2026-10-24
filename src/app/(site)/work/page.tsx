@@ -2,11 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { PageHero } from "@/components/site/page-hero";
-import { Pager } from "@/components/site/pager";
 import { GridSkeleton } from "@/components/site/skeletons";
-import { WorkGrid } from "@/components/site/work-grid";
-import { getCategories, getWorkPage } from "@/lib/data/public";
-import { publicPage, type SearchParamsRecord } from "@/lib/listing";
+import { WorkFeed } from "@/components/site/work-feed";
+import { getCategories, getWorkAll } from "@/lib/data/public";
+import type { SearchParamsRecord } from "@/lib/listing";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -14,12 +13,8 @@ export const metadata: Metadata = {
   description: "Apps, websites, ERP and SaaS shipped by D4DX for clients across Kerala and beyond.",
 };
 
-function workHref(category: string | null, page: number): string {
-  const q = new URLSearchParams();
-  if (category) q.set("category", category);
-  if (page > 1) q.set("page", String(page));
-  const s = q.toString();
-  return s ? `/work?${s}` : "/work";
+function workHref(category: string | null): string {
+  return category ? `/work?category=${encodeURIComponent(category)}` : "/work";
 }
 
 /** The kinds of work as tabs; the current one comes from the URL. */
@@ -36,7 +31,7 @@ async function Tabs({ searchParams }: { searchParams: Promise<SearchParamsRecord
         return (
           <Link
             key={t.slug ?? "all"}
-            href={workHref(t.slug, 1)}
+            href={workHref(t.slug)}
             aria-current={on ? "page" : undefined}
             className={cn(
               "inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-[0.9375rem] font-medium transition-colors duration-200",
@@ -55,10 +50,9 @@ async function Tabs({ searchParams }: { searchParams: Promise<SearchParamsRecord
 async function Results({ searchParams }: { searchParams: Promise<SearchParamsRecord> }) {
   const params = await searchParams;
   const category = typeof params.category === "string" ? params.category : null;
-  const page = publicPage(params.page);
-  const result = await getWorkPage(category, page);
+  const { projects } = await getWorkAll(category);
 
-  if (!result.data.length) {
+  if (!projects.length) {
     return (
       <div className="rounded-3xl border border-dashed border-border p-10 text-center">
         <p className="font-semibold">No projects here yet.</p>
@@ -70,12 +64,8 @@ async function Results({ searchParams }: { searchParams: Promise<SearchParamsRec
     );
   }
 
-  return (
-    <>
-      <WorkGrid projects={result.data} priorityCount={4} />
-      <Pager page={result.page} totalPages={result.totalPages} total={result.total} noun="projects" href={(p) => workHref(category, p)} />
-    </>
-  );
+  // Keyed by kind, so choosing another tab starts the list again from the top.
+  return <WorkFeed key={category ?? "all"} projects={projects} />;
 }
 
 export default function WorkPage({ searchParams }: PageProps<"/work">) {

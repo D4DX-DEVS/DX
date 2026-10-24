@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -29,7 +29,13 @@ interface DeleteButtonProps {
   compact?: boolean;
 }
 
-export function DeleteButton({ name, consequence, action, redirectTo, compact }: DeleteButtonProps) {
+export function DeleteButton({
+  name,
+  consequence,
+  action,
+  redirectTo,
+  compact,
+}: DeleteButtonProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -52,7 +58,12 @@ export function DeleteButton({ name, consequence, action, redirectTo, compact }:
     <AlertDialog open={open} onOpenChange={(v) => !pending && setOpen(v)}>
       <AlertDialogTrigger asChild>
         {compact ? (
-          <Button variant="ghost" size="icon" aria-label={`Delete ${name}`} className="text-soft hover:text-destructive">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={`Delete ${name}`}
+            className="text-soft hover:text-destructive"
+          >
             <Trash2 className="size-4" aria-hidden="true" />
           </Button>
         ) : (
@@ -65,12 +76,18 @@ export function DeleteButton({ name, consequence, action, redirectTo, compact }:
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete {name}?</AlertDialogTitle>
-          <AlertDialogDescription>{consequence} This cannot be undone.</AlertDialogDescription>
+          <AlertDialogDescription>
+            {consequence} This cannot be undone.
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
           <Button variant="destructive" onClick={confirm} disabled={pending}>
-            {pending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Trash2 className="size-4" aria-hidden="true" />}
+            {pending ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <Trash2 className="size-4" aria-hidden="true" />
+            )}
             {pending ? "Deleting…" : "Delete"}
           </Button>
         </AlertDialogFooter>

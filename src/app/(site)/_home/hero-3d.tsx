@@ -2,9 +2,10 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Component, useCallback, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { Component, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { ChevronLeft, ChevronRight, Pause, Play } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import { slideStops, travel } from "./scene/path";
 import { heroState } from "./scene/state";
 
 const HeroScene = dynamic(() => import("./scene/hero-scene"), { ssr: false });
@@ -87,6 +88,156 @@ function Captions({ projects, current }: CaptionsProps) {
   );
 }
 
+const INTRO_MS = 2400;
+const PANEL_MS = 1900;
+const FINALE_MS = 2600;
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+/**
+ * The hero as a slider that plays itself: the intro, one slide per project, then the closing wordmark,
+ * after which it fades and starts again. It moves the camera by writing heroState.progress, the same
+ * number scroll used to drive, so the scene needs no other change. `go` jumps to a slide.
+ */
+function useSlider(count: number, active: boolean) {
+  const stops = useMemo(() => slideStops(count), [count]);
+  const last = stops.length - 1;
+  const [slide, setSlide] = useState(0);
+  const [playing, setPlaying] = useState(true);
+  const [fading, setFading] = useState(false);
+  const [leg, setLeg] = useState(INTRO_MS);
+  const at = useRef(0);
+  const tween = useRef<{ from: number; to: number; t: number; dur: number } | null>(null);
+  const dwell = useRef(INTRO_MS);
+  const busy = useRef(false);
+
+  const restMs = (i: number) => (i === 0 ? INTRO_MS : i === last ? FINALE_MS : PANEL_MS);
+
+  const go = useCallback(
+    (i: number) => {
+      if (busy.current || i < 0 || i > last) return;
+      const from = heroState.progress;
+      const to = stops[i]!;
+      const dz = Math.abs(to - from) * travel(count);
+      const dur = Math.min(1900, Math.max(900, 600 + dz * 130));
+      tween.current = { from, to, t: 0, dur };
+      at.current = i;
+      setSlide(i);
+      setLeg(dur + restMs(i));
+    },
+    // restMs depends only on `last`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [stops, count, last],
+  );
+
+  const restart = useCallback(() => {
+    busy.current = true;
+    setFading(true);
+    window.setTimeout(() => {
+      heroState.progress = 0;
+      heroState.smooth = 0;
+      tween.current = null;
+      at.current = 0;
+      dwell.current = INTRO_MS;
+      setSlide(0);
+      setLeg(INTRO_MS);
+      setFading(false);
+      busy.current = false;
+    }, 520);
+  }, []);
+
+  useEffect(() => {
+    if (!active) return;
+    let raf = 0;
+    let prev = performance.now();
+    const loop = (now: number) => {
+      const dt = Math.min(250, now - prev);
+      prev = now;
+      const tw = tween.current;
+      if (tw) {
+        tw.t += dt;
+        const k = Math.min(1, tw.t / tw.dur);
+        heroState.progress = tw.from + (tw.to - tw.from) * easeInOut(k);
+        if (k >= 1) {
+          tween.current = null;
+          dwell.current = restMs(at.current);
+        }
+      } else if (playing && !busy.current) {
+        dwell.current -= dt;
+        if (dwell.current <= 0) {
+          if (at.current >= last) restart();
+          else go(at.current + 1);
+        }
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+    // restMs depends only on `last`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, playing, go, restart, last]);
+
+  useEffect(
+    () => () => {
+      heroState.progress = 0;
+      heroState.smooth = 0;
+    },
+    [],
+  );
+
+  return { slide, slides: stops.length, playing, setPlaying, fading, leg, go, next: () => (at.current >= last ? go(0) : go(at.current + 1)), prev: () => go(Math.max(0, at.current - 1)) };
+}
+
+interface SliderControlsProps {
+  slide: number;
+  slides: number;
+  playing: boolean;
+  leg: number;
+  titles: string[];
+  onGo: (i: number) => void;
+  onPrev: () => void;
+  onNext: () => void;
+  onToggle: () => void;
+}
+
+/** Previous and next, one dot per slide (the current one fills as its time runs out), and play or pause. */
+function SliderControls({ slide, slides, playing, leg, titles, onGo, onPrev, onNext, onToggle }: SliderControlsProps) {
+  const label = (i: number) => (i === 0 ? "Introduction" : i === slides - 1 ? "Closing" : (titles[i - 1] ?? `Project ${i}`));
+  return (
+    <div
+      role="group"
+      aria-label="Hero slides"
+      className="hero-controls absolute top-[5.75rem] left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/45 p-1.5 ring-1 ring-white/15 backdrop-blur-md md:top-auto md:bottom-[var(--margin)]"
+    >
+      <button type="button" onClick={onPrev} aria-label="Previous slide" className="hero-ctl">
+        <ChevronLeft className="size-5" aria-hidden="true" />
+      </button>
+      <ol className="flex items-center gap-1.5 px-1.5">
+        {Array.from({ length: slides }, (_, i) => (
+          <li key={i}>
+            <button type="button" onClick={() => onGo(i)} aria-label={`Show ${label(i)}`} aria-current={i === slide ? "true" : undefined} className="hero-dot group relative grid h-7 place-items-center">
+              <span className={cn("relative block h-1.5 overflow-hidden rounded-full bg-white/30 transition-[width] duration-500", i === slide ? "w-9" : "w-1.5 group-hover:bg-white/60")}>
+                {i === slide ? (
+                  <span
+                    key={`${slide}-${leg}`}
+                    className="hero-dot-fill absolute inset-y-0 left-0 block rounded-full bg-white"
+                    style={{ animationDuration: `${leg}ms`, animationPlayState: playing ? "running" : "paused" }}
+                  />
+                ) : null}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ol>
+      <button type="button" onClick={onNext} aria-label="Next slide" className="hero-ctl">
+        <ChevronRight className="size-5" aria-hidden="true" />
+      </button>
+      <button type="button" onClick={onToggle} aria-label={playing ? "Pause the slideshow" : "Play the slideshow"} aria-pressed={!playing} className="hero-ctl ml-1 bg-white/10">
+        {playing ? <Pause weight="fill" className="size-4" aria-hidden="true" /> : <Play weight="fill" className="size-4 translate-x-px" aria-hidden="true" />}
+      </button>
+    </div>
+  );
+}
+
 interface Hero3DProps {
   projects: HeroProject[];
   labelledBy: string;
@@ -112,10 +263,16 @@ export function Hero3D({ projects, labelledBy, children }: Hero3DProps) {
   const onReady = useCallback(() => setReady(true), []);
   // A lost GPU context brings the flat mark back until the browser restores it.
   const onContext = useCallback((lost: boolean) => setReady(!lost), []);
+  // A scene error gets one more try (a hiccup while loading, a context that was just reset) before the
+  // page settles for the flat hero.
+  const [attempt, setAttempt] = useState(0);
   const onFail = useCallback(() => {
+    if (attempt === 0) {
+      window.setTimeout(() => setAttempt(1), 900);
+      return;
+    }
     document.documentElement.classList.remove("immersive");
-    requestAnimationFrame(() => ScrollTrigger.refresh());
-  }, []);
+  }, [attempt]);
 
   // Render only while the hero is on screen. A layout effect so the cleanup also runs when Next
   // keeps this route mounted but hidden (<Activity>) after navigating away.
@@ -136,35 +293,8 @@ export function Hero3D({ projects, labelledBy, children }: Hero3DProps) {
     };
   }, [immersive]);
 
-  useGSAP(
-    () => {
-      const el = section.current;
-      if (!immersive || !el) return;
-      const sync = (self: ScrollTrigger) => {
-        heroState.progress = self.progress;
-      };
-      // The flight ends one screen before the runway does: that last screen is the light page
-      // rising over the finished scene (.curtain on the home page).
-      const trigger = ScrollTrigger.create({
-        trigger: el,
-        start: "top top",
-        end: () => `bottom bottom+=${window.innerHeight}`,
-        onUpdate: sync,
-        onRefresh: sync,
-      });
-      gsap
-        .timeline({ scrollTrigger: { trigger: el, start: "top top", end: () => `+=${window.innerHeight * 0.3}`, scrub: true } })
-        .to("[data-hero-copy]", { autoAlpha: 0, y: -48, ease: "none" }, 0);
-      ScrollTrigger.refresh();
-      // onUpdate only fires on change, so take the starting position (a return visit, a restored scroll) now.
-      sync(trigger);
-      return () => {
-        heroState.progress = 0;
-        heroState.smooth = 0;
-      };
-    },
-    { scope: section, dependencies: [immersive, count], revertOnUpdate: true },
-  );
+  // Plays itself once the 3D is on screen, and only while the hero is in view.
+  const slider = useSlider(count, immersive && ready && running);
 
   return (
     <section
@@ -172,13 +302,13 @@ export function Hero3D({ projects, labelledBy, children }: Hero3DProps) {
       data-hero
       data-3d={immersive && ready ? "ready" : undefined}
       aria-labelledby={labelledBy}
+      data-intro={slider.slide === 0 ? "on" : "off"}
       className="hero relative -mt-20"
-      style={{ "--runway": immersive ? `${230 + count * 40}svh` : "200svh" } as React.CSSProperties}
     >
       <div ref={stage} className="hero-stage relative overflow-hidden">
         {immersive ? (
-          <div className="hero-canvas absolute inset-0" aria-hidden="true">
-            <SceneBoundary onError={onFail}>
+          <div className={cn("hero-canvas absolute inset-0", slider.fading && "hero-canvas-fading")} aria-hidden="true">
+            <SceneBoundary key={attempt} onError={onFail}>
               <HeroScene
                 panels={projects.map((p) => p.src)}
                 stage={stage}
@@ -192,6 +322,19 @@ export function Hero3D({ projects, labelledBy, children }: Hero3DProps) {
         ) : null}
         {children}
         {immersive ? <Captions projects={projects} current={ready ? caption : -1} /> : null}
+        {immersive && ready ? (
+          <SliderControls
+            slide={slider.slide}
+            slides={slider.slides}
+            playing={slider.playing}
+            leg={slider.leg}
+            titles={projects.map((p) => p.title)}
+            onGo={slider.go}
+            onPrev={slider.prev}
+            onNext={slider.next}
+            onToggle={() => slider.setPlaying((v) => !v)}
+          />
+        ) : null}
       </div>
     </section>
   );

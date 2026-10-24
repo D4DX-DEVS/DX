@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { GalleryField } from "@/components/admin/fields/gallery-field";
 import { ImageField } from "@/components/admin/fields/image-field";
 import { ListField } from "@/components/admin/fields/list-field";
 import { RichTextEditor } from "@/components/admin/fields/rich-text-editor";
+import { VideoField } from "@/components/admin/fields/video-field";
 import { Field } from "@/components/site/field";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -114,7 +115,7 @@ export function ProjectForm({ id, initial, categories, publicSlug }: ProjectForm
             </Field>
           </FormSection>
 
-          <FormSection title="Images">
+          <FormSection title="Images and video">
             <Field id="cover" label="Cover" hint="Shown on cards and at the top of the project page." error={errors.cover?.message}>
               <Controller
                 control={control}
@@ -127,6 +128,19 @@ export function ProjectForm({ id, initial, categories, publicSlug }: ProjectForm
                 control={control}
                 name="gallery"
                 render={({ field }) => <GalleryField id="gallery" value={field.value} onChange={field.onChange} defaultAlt={title} />}
+              />
+            </Field>
+            <Field
+              id="video"
+              label="Preview video"
+              optional
+              hint="Plays muted on a loop on the home page card. Without one, the card plays the gallery screens."
+              error={errors.video?.message}
+            >
+              <Controller
+                control={control}
+                name="video"
+                render={({ field }) => <VideoField id="video" value={field.value} onChange={field.onChange} invalid={Boolean(errors.video)} />}
               />
             </Field>
           </FormSection>

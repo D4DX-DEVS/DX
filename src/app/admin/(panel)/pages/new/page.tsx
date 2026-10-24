@@ -4,11 +4,11 @@ import { PageForm } from "../_components/page-form";
 
 export const metadata: Metadata = { title: "New page" };
 
-export default function NewLegalPage() {
+export default function NewPage() {
   return (
     <div className="space-y-6 lg:space-y-8">
-      <PageHeader title="New page" back={{ href: "/admin/pages", label: "Legal pages" }} />
-      <PageForm id={null} initial={{ title: "", slug: "", content: "" }} />
+      <PageHeader title="New page" back={{ href: "/admin/pages", label: "Pages" }} />
+      <PageForm id={null} initial={{ title: "", slug: "", section: "legal", content: "" }} />
     </div>
   );
 }

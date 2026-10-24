@@ -12,6 +12,12 @@ const slug = z
 // http(s) only: these links are rendered on the public site.
 const optionalUrl = z.union([z.literal(""), z.url({ protocol: /^https?$/, message: "Enter a full link starting with https://" }).max(300)]);
 
+/** A preview video: one this app stored (/media/videos/...) or an https link to an mp4 or webm. */
+const videoUrl = z.union([
+  z.literal(""),
+  z.string().max(500).regex(/^(\/media\/videos\/[0-9]{4}\/[0-9]{2}\/[a-z0-9-]+\.(mp4|webm)|https:\/\/\S+)$/, "Upload a video, or enter a full https:// link."),
+]);
+
 export const mediaSchema = z.object({
   // Only images this app stored: the /media proxy path or the public R2 domain.
   url: z.string().regex(/^(\/media\/|https:\/\/)/, "Upload the image again."),
@@ -43,6 +49,7 @@ export const projectSchema = z
   links: z.object({ playStore: optionalUrl, appStore: optionalUrl, website: optionalUrl }),
   cover: mediaSchema.nullable(),
   gallery: z.array(mediaSchema).max(30),
+  video: videoUrl,
   featured: z.boolean(),
   status: z.enum(STATUS_OPTIONS),
   order,
@@ -99,6 +106,10 @@ export const postSchema = z.object({
   content: z.string().max(200_000),
   cover: mediaSchema.nullable(),
   tags: lines(12, 40),
+  /** Optional: where to see or get what the post is about. */
+  website: optionalUrl,
+  playStore: optionalUrl,
+  appStore: optionalUrl,
   status: z.enum(STATUS_OPTIONS),
   publishedAt: z.union([z.literal(""), z.iso.date("Use a valid date.")]),
 });
@@ -117,9 +128,18 @@ export const jobSchema = z.object({
 });
 export type JobInput = z.infer<typeof jobSchema>;
 
+/** Where a page shows: the legal pages (footer and /legal), or the Join Our Team page above or below its positions table. */
+export const PAGE_SECTIONS = ["legal", "careers-top", "careers-bottom"] as const;
+export const PAGE_SECTION_LABEL: Record<(typeof PAGE_SECTIONS)[number], string> = {
+  legal: "Legal pages (footer and /legal)",
+  "careers-top": "Join Our Team: above the positions",
+  "careers-bottom": "Join Our Team: below the positions",
+};
+
 export const pageSchema = z.object({
   title: z.string().trim().min(1, "Enter a title.").max(120),
   slug,
+  section: z.enum(PAGE_SECTIONS),
   content: z.string().max(200_000),
 });
 export type PageInput = z.infer<typeof pageSchema>;

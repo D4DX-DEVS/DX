@@ -1,4 +1,4 @@
-import { ArrowUpRight, Newspaper } from "lucide-react";
+import { ArrowUpRight, Newspaper } from "@/components/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -9,7 +9,6 @@ import { Pager } from "@/components/site/pager";
 import { Lines } from "@/components/site/skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BLOG_PAGE_SIZE, getPostsPage } from "@/lib/data/public";
-import { formatDate } from "@/lib/format";
 import { publicPage, type SearchParamsRecord } from "@/lib/listing";
 import type { PostCard } from "@/lib/types";
 
@@ -39,8 +38,7 @@ function Card({ post }: { post: PostCard }) {
         </div>
       )}
       <div className="flex flex-1 flex-col px-4 pt-5 pb-4">
-        <p className="text-sm text-soft num">{formatDate(post.publishedAt)}</p>
-        <h2 className="mt-2 line-clamp-2 text-lg leading-snug font-semibold">{post.title}</h2>
+        <h2 className="line-clamp-2 text-lg leading-snug font-semibold">{post.title}</h2>
         {post.excerpt ? <p className="mt-2 line-clamp-3 leading-relaxed text-soft">{post.excerpt}</p> : null}
         <span className="mt-auto inline-flex items-center gap-1.5 pt-5 text-[0.9375rem] font-semibold text-brand-ink">
           Read the post

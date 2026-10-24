@@ -45,7 +45,8 @@
  * One palette for the site and the admin: a blue-black ground, cool white ink
  * and the logo's royal blue, which carries the one action per screen and the closing field.
  */
-:root {
+:root,
+.theme-dark {
   color-scheme: dark;
 
   --ground: #070a12;
@@ -85,7 +86,7 @@
   --margin: clamp(1.25rem, 3.4vw, 2.5rem);
   --content: 1400px;
   --gutter: clamp(0.75rem, 1.4vw, 1.5rem);
-  --section-gap: clamp(4.5rem, 9vw, 8.5rem);
+  --section-gap: clamp(2.5rem, 5vw, 4.5rem);
   --step-xl: clamp(2.375rem, 4.6vw, 4.25rem);
   --step-head: clamp(1.5rem, 2.1vw, 2.125rem);
   --step-lead: clamp(1.0625rem, 1.25vw, 1.25rem);
@@ -142,6 +143,85 @@
 .theme-light .btn-ink:hover {
   background: #1c2a52;
 }
+
+/* A dark band inside a light page (the home page's work and team): the dark palette is restated
+   above, and the light scope's overrides are undone for what sits inside it. */
+.theme-dark {
+  background: var(--ground);
+  color: var(--ink);
+}
+.theme-dark .shimmer::after {
+  background: linear-gradient(90deg, transparent 0%, rgb(255 255 255 / 0.055) 45%, rgb(255 255 255 / 0.09) 50%, rgb(255 255 255 / 0.055) 55%, transparent 100%);
+}
+/* The band: a dark section that runs straight into the next one (no gap, no corners), with two soft blue
+   glows kept well inside its edges so no seam shows where two bands meet. */
+.dark-band {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(54rem 30rem at 88% 38%, rgb(45 80 210 / 0.2), transparent 62%),
+    radial-gradient(40rem 26rem at 4% 68%, rgb(59 95 230 / 0.13), transparent 62%),
+    var(--ground);
+}
+/* Soft blue lights that drift behind a band's content (components/site/band-lights.tsx). */
+.band-light {
+  position: absolute;
+  z-index: -1;
+  width: 30rem;
+  height: 30rem;
+  border-radius: 999px;
+  /* The gradient already fades to nothing, so no blur filter is needed (it is costly to repaint). */
+  background: radial-gradient(closest-side, rgb(59 95 230 / 0.42), rgb(45 80 210 / 0.12) 58%, transparent 100%);
+  pointer-events: none;
+  animation: band-drift 22s ease-in-out infinite alternate;
+}
+.band-light:nth-child(1) {
+  top: 6%;
+  left: 8%;
+}
+.band-light:nth-child(2) {
+  right: -4rem;
+  top: 34%;
+  width: 24rem;
+  height: 24rem;
+  animation-duration: 28s;
+  animation-delay: -9s;
+}
+.band-light:nth-child(3) {
+  bottom: 4%;
+  left: 38%;
+  width: 34rem;
+  height: 34rem;
+  animation-duration: 34s;
+  animation-delay: -16s;
+}
+@keyframes band-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(9rem, 4rem, 0) scale(1.18);
+  }
+  100% {
+    transform: translate3d(-5rem, 9rem, 0) scale(0.92);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .band-light {
+    animation: none;
+  }
+}
+.dark-band::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1.4px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, transparent, rgb(0 0 0 / 0.85) 25%, rgb(0 0 0 / 0.85) 75%, transparent);
+  pointer-events: none;
+}
 .btn-outline {
   background: transparent;
   color: var(--ink);
@@ -161,264 +241,967 @@
   color: var(--brand-ink);
 }
 
-/* Home service cards (_home/services.tsx): each card carries its colour in --ink-c and --tint. */
-.service-card {
-  box-shadow: 0 1px 2px rgb(11 20 48 / 0.04);
-  transition:
-    transform 420ms var(--ease-out),
-    box-shadow 420ms var(--ease-out),
-    border-color 300ms ease;
+/* The home About band (_home/about.tsx): the mark circled by an orbit with a light running round it, and the
+   four values lit one after another beside it. */
+.about-orbit-dot {
+  offset-path: path("M 10 70 A 190 52 0 1 1 390 70 A 190 52 0 1 1 10 70");
+  animation: about-orbit 7s linear infinite;
+  filter: drop-shadow(0 0 8px rgb(140 175 255));
 }
-.service-wash {
-  background: radial-gradient(120% 70% at 100% 0%, var(--tint), transparent 65%);
-  opacity: 0;
-  transition: opacity 420ms var(--ease-out);
-}
-.service-mark {
-  color: var(--tint);
-  opacity: 0.7;
-  transform: rotate(-12deg) scale(0.9);
-  transition: transform 700ms var(--ease-expo), opacity 420ms ease;
-}
-.service-icon {
-  background: linear-gradient(140deg, color-mix(in oklab, var(--ink-c) 70%, white), var(--ink-c));
-  box-shadow: 0 10px 22px -10px var(--ink-c);
-  transition: transform 500ms var(--ease-expo);
-}
-.service-ping {
-  background: var(--ink-c);
-  opacity: 0;
-}
-.service-line {
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 600ms var(--ease-expo);
-}
-.service-arrow {
-  color: var(--ink-c);
-  box-shadow: inset 0 0 0 1.5px var(--tint);
-  transition:
-    background-color 240ms ease,
-    color 240ms ease,
-    box-shadow 240ms ease;
-}
-.service-arrow svg {
-  transition: transform 320ms var(--ease-out);
-}
-@media (hover: hover) and (pointer: fine) {
-  .service-card:hover,
-  .service-card:focus-within {
-    transform: translateY(-6px);
-    border-color: color-mix(in oklab, var(--ink-c) 30%, var(--border));
-    box-shadow: 0 24px 48px -24px color-mix(in oklab, var(--ink-c) 55%, transparent);
+@keyframes about-orbit {
+  to {
+    offset-distance: 100%;
   }
-  .service-card:hover .service-wash,
-  .service-card:focus-within .service-wash {
-    opacity: 1;
+}
+.about-mark {
+  animation: about-bob 7s ease-in-out infinite;
+}
+@keyframes about-bob {
+  50% {
+    transform: translateY(-0.6rem);
   }
-  .service-card:hover .service-mark {
-    opacity: 1;
-    transform: rotate(0deg) scale(1);
-  }
-  .service-card:hover .service-icon {
-    transform: rotate(-8deg) scale(1.08);
-  }
-  .service-card:hover .service-ping {
-    animation: service-ping 900ms var(--ease-out) 1;
-  }
-  .service-card:hover .service-line,
-  .service-card:focus-within .service-line {
-    transform: scaleX(1);
-  }
-  .service-card:hover .service-arrow {
-    background: var(--ink-c);
+}
+.about-value {
+  color: rgb(255 255 255 / 0.55);
+  animation: about-value 9.6s linear infinite;
+  animation-delay: calc(var(--n) * 2.4s);
+}
+.about-pip {
+  animation: about-pip 9.6s infinite;
+}
+@keyframes about-value {
+  0%,
+  22% {
     color: #fff;
-    box-shadow: inset 0 0 0 1.5px var(--ink-c);
   }
-  /* The arrow leaves to the right and comes back in from the left. */
-  .service-card:hover .service-arrow svg {
-    animation: arrow-through 520ms var(--ease-out) 1;
-  }
-  .service-card:hover .service-point {
-    animation: point-nudge 420ms var(--ease-out) both;
-    animation-delay: calc(var(--n, 0) * 60ms);
+  28%,
+  100% {
+    color: rgb(255 255 255 / 0.55);
   }
 }
-@keyframes service-ping {
-  from {
-    opacity: 0.45;
+@keyframes about-pip {
+  0%,
+  22% {
+    transform: translateY(0);
+  }
+  25%,
+  47% {
+    transform: translateY(2.75rem);
+  }
+  50%,
+  72% {
+    transform: translateY(5.5rem);
+  }
+  75%,
+  97% {
+    transform: translateY(8.25rem);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .about-orbit-dot,
+  .about-mark,
+  .about-value,
+  .about-pip {
+    animation: none;
+  }
+  .about-value:last-child {
+    color: #fff;
+  }
+}
+
+/* The solutions band (_home/services.tsx): four colour-washed cards. Each carries its colours in --a (accent),
+   --from and --to (the gradient). The art floats; on hover the card lifts into a glow of its colour. */
+.sol-card {
+  background: linear-gradient(150deg, var(--from), var(--to));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--a) 38%, transparent);
+  transition:
+    transform 520ms var(--ease-out),
+    box-shadow 520ms var(--ease-out);
+}
+.sol-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(70% 60% at 85% 0%, color-mix(in oklab, var(--a) 28%, transparent), transparent 70%);
+  opacity: 0.55;
+  transition: opacity 520ms ease;
+}
+.sol-num {
+  color: color-mix(in oklab, var(--a) 18%, transparent);
+  transition: color 400ms ease, transform 520ms var(--ease-out);
+}
+.sol-art {
+  animation: sol-float 6.5s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -1.6s);
+  transition: filter 500ms ease;
+  filter: drop-shadow(0 12px 24px rgb(0 0 0 / 0.45));
+}
+@keyframes sol-float {
+  50% {
+    transform: translateY(-0.55rem) rotate(-1.5deg);
+  }
+}
+.sol-badge {
+  background: linear-gradient(145deg, color-mix(in oklab, var(--a) 100%, white 12%), color-mix(in oklab, var(--a) 70%, black));
+  box-shadow: 0 10px 26px -8px color-mix(in oklab, var(--a) 80%, transparent);
+}
+.sol-badge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid var(--a);
+  opacity: 0;
+  animation: sol-ping 3.6s ease-out infinite;
+  animation-delay: calc(var(--i) * 0.6s);
+}
+@keyframes sol-ping {
+  0% {
+    opacity: 0.8;
     transform: scale(1);
   }
-  to {
+  60%,
+  100% {
     opacity: 0;
-    transform: scale(1.6);
+    transform: scale(1.5);
   }
 }
-@keyframes arrow-through {
-  45% {
-    transform: translateX(150%);
-  }
-  46% {
-    transform: translateX(-150%);
-  }
+.sol-point {
+  transition: transform 420ms var(--ease-out);
+  transition-delay: calc(var(--n) * 60ms);
+}
+.sol-arrow {
+  box-shadow: inset 0 0 0 1.5px var(--a);
+  transition:
+    background-color 300ms ease,
+    color 300ms ease,
+    box-shadow 300ms ease;
+}
+.sol-arrow svg {
+  transition: transform 420ms var(--ease-out);
+}
+/* A handwritten look from fonts the visitor already has, so nothing is downloaded for one line. */
+.font-script {
+  font-family: "Snell Roundhand", "Segoe Script", "Bradley Hand", "Lucida Handwriting", "Apple Chancery", cursive;
+  font-style: italic;
+  font-weight: 600;
+}
+.sol-script-line {
+  stroke-dasharray: 220;
+  stroke-dashoffset: 220;
+  animation: sol-draw 2.2s var(--ease-out) 0.4s forwards;
+}
+@keyframes sol-draw {
   to {
-    transform: none;
+    stroke-dashoffset: 0;
   }
 }
-@keyframes point-nudge {
-  40% {
+.sol-card:is(:hover, :focus-within) .sol-num {
+  color: color-mix(in oklab, var(--a) 40%, transparent);
+}
+.sol-card:is(:hover, :focus-within) .sol-arrow {
+  background-color: var(--a);
+  color: #07101f;
+}
+.sol-card:is(:hover, :focus-within)::before {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sol-card:is(:hover, :focus-within) {
+    transform: translateY(-8px);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklab, var(--a) 75%, transparent),
+      0 30px 60px -24px color-mix(in oklab, var(--a) 70%, transparent);
+  }
+  .sol-card:is(:hover, :focus-within) .sol-art {
+    animation-duration: 3.2s;
+    filter: drop-shadow(0 16px 30px color-mix(in oklab, var(--a) 55%, transparent));
+  }
+  .sol-card:is(:hover, :focus-within) .sol-num {
     transform: translateX(4px);
   }
-  to {
-    transform: none;
+  .sol-card:is(:hover, :focus-within) .sol-point {
+    transform: translateX(6px);
+  }
+  .sol-card:is(:hover, :focus-within) .sol-arrow svg {
+    transform: translateX(2px);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .service-card,
-  .service-mark,
-  .service-icon,
-  .service-line,
-  .service-arrow svg {
-    transition: none;
+  .sol-art,
+  .sol-badge::after {
+    animation: none;
   }
-  .service-card:hover,
-  .service-card:focus-within {
+  .sol-script-line {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The home page's project cards (_home/work-gallery.tsx): screens fade through behind the title with
+   a slow push-in, the card lifts with a blue glow, a sheen crosses it and the arrow turns blue. */
+.work-card {
+  transition:
+    transform 520ms var(--ease-out),
+    box-shadow 520ms var(--ease-out);
+}
+.work-frame {
+  opacity: 0;
+  transform: scale(1);
+  transition:
+    opacity 800ms ease,
+    transform 5200ms linear;
+}
+.work-frame[data-on="true"] {
+  opacity: 1;
+  transform: scale(1.07);
+}
+.work-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(112deg, transparent 34%, rgb(255 255 255 / 0.18) 50%, transparent 66%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+.work-arrow {
+  transition:
+    transform 520ms var(--ease-out),
+    background-color var(--t-ui) ease,
+    box-shadow var(--t-ui) ease;
+}
+/* A blue light circles every card's edge all the time. A square gradient far bigger than the card turns
+   behind it (a transform, so it costs the page nothing to repaint), and the card's face covers all but
+   the 2px rim. Faster and brighter when the card is looked at. */
+.work-spin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  /* Each card sets its own --c1/--c2 (the light's colours), --dur, --delay and --dir (see work-gallery.tsx). */
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 190deg,
+    color-mix(in oklab, var(--c1, #2d50d2) 85%, transparent) 250deg,
+    var(--c2, #96b2ff) 320deg,
+    #fff 346deg,
+    transparent 360deg
+  );
+  opacity: 0.8;
+  transition: opacity 400ms ease;
+  animation: work-rotate var(--dur, 5.5s) linear var(--delay, 0s) infinite var(--dir, normal);
+  will-change: transform;
+}
+@keyframes work-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.work-card:is(:hover, :focus-visible) .work-spin {
+  opacity: 1;
+  animation-duration: 2.2s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .work-spin {
+    animation: none;
+  }
+}
+.work-card:is(:hover, :focus-visible) .work-arrow {
+  background-color: var(--brand);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.4), 0 10px 26px -6px rgb(45 80 210 / 0.95);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .work-card:is(:hover, :focus-visible) {
+    transform: translateY(-8px);
+    box-shadow:
+      0 0 0 1px rgb(59 95 230 / 0.55),
+      0 30px 70px -24px rgb(45 80 210 / 0.8);
+  }
+  .work-card:is(:hover, :focus-visible) .work-arrow {
+    transform: rotate(45deg) scale(1.08);
+  }
+  .work-card:is(:hover, :focus-visible) .work-arrow > svg {
+    transform: rotate(-45deg);
+  }
+  .work-card:is(:hover, :focus-visible) .work-sheen {
+    animation: team-sheen 1000ms var(--ease-out) both;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .work-frame,
+  .work-frame[data-on="true"] {
     transform: none;
+    transition: opacity 200ms ease;
   }
-  .service-card .service-ping,
-  .service-card .service-arrow svg,
-  .service-card .service-point {
-    animation: none !important;
+}
+
+/* The process steps (_home/process.tsx): a ripple around each badge, a motion for each icon, and a
+   light that runs along the line to the next step. */
+.process-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid var(--brand-ink);
+  opacity: 0;
+  animation: process-ripple 3.4s ease-out infinite;
+  animation-delay: calc(var(--i) * 0.7s);
+}
+.process-icon {
+  transform-origin: center;
+}
+.process-icon[data-motion="scan"] {
+  animation: process-scan 3.6s ease-in-out infinite;
+}
+.process-icon[data-motion="write"] {
+  animation: process-write 2.8s ease-in-out infinite;
+}
+.process-icon[data-motion="pulse"] {
+  animation: process-pulse 2.4s ease-in-out infinite;
+}
+.process-icon[data-motion="launch"] {
+  animation: process-launch 3s ease-in-out infinite;
+}
+.process-step:hover .process-icon {
+  animation-duration: 1.2s;
+}
+.process-track {
+  position: relative;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, var(--soft) 0 6px, transparent 6px 12px);
+  opacity: 0.55;
+}
+.process-track::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 12px 2px rgb(45 80 210 / 0.7);
+  animation: process-travel 3.4s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.7s);
+}
+@keyframes process-ripple {
+  0% {
+    opacity: 0.7;
+    transform: scale(1);
   }
-  .service-card:hover .service-mark,
-  .service-card:hover .service-icon {
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+@keyframes process-scan {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(3px, -3px) scale(1.1);
+  }
+  50% {
+    transform: translate(-1px, -4px) scale(1.04);
+  }
+  75% {
+    transform: translate(-3px, 1px) scale(1.1);
+  }
+}
+@keyframes process-write {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  35% {
+    transform: translateY(-3px) rotate(-4deg);
+  }
+  70% {
+    transform: translateY(1px) rotate(3deg);
+  }
+}
+@keyframes process-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.18);
+  }
+  60% {
+    transform: scale(0.95);
+  }
+}
+@keyframes process-launch {
+  0%,
+  55%,
+  100% {
+    transform: translate(0, 0);
+  }
+  72% {
+    transform: translate(1px, 1px) rotate(-3deg);
+  }
+  88% {
+    transform: translate(4px, -5px) rotate(3deg);
+  }
+}
+@keyframes process-travel {
+  0% {
+    left: 0;
+    opacity: 0;
+  }
+  15%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    left: calc(100% - 8px);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .process-ring,
+  .process-icon,
+  .process-track::after {
+    animation: none;
+  }
+}
+
+/* The header navigation (components/site/site-nav.tsx): pills that glide between links, an icon motion for
+   each link on hover, and links that drop in one after another. */
+.nav-glide {
+  transition:
+    left 420ms var(--ease-out),
+    width 420ms var(--ease-out),
+    opacity 260ms ease;
+}
+.nav-icon {
+  transition: color 250ms ease;
+}
+.nav-enter {
+  animation: nav-in 700ms var(--ease-out) both;
+  animation-delay: calc(var(--i) * 70ms + 250ms);
+}
+@keyframes nav-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .nav-pill:hover .nav-icon[data-motion="hop"] {
+    animation: nav-hop 700ms var(--ease-out);
+  }
+  .nav-pill:hover .nav-icon[data-motion="wiggle"] {
+    animation: nav-wiggle 700ms ease-in-out;
+  }
+  .nav-pill:hover .nav-icon[data-motion="glow"] {
+    animation: nav-glow 900ms ease-in-out;
+  }
+  .nav-pill:hover .nav-icon[data-motion="lift"] {
+    animation: nav-lift 600ms var(--ease-out) forwards;
+  }
+  .nav-pill:hover .nav-icon[data-motion="tilt"] {
+    animation: nav-tilt 600ms var(--ease-out) forwards;
+  }
+  .nav-pill:hover .nav-icon[data-motion="pop"] {
+    animation: nav-pop 600ms var(--ease-out);
+  }
+  .nav-pill:hover .nav-icon[data-motion="ring"] {
+    animation: nav-ring 800ms ease-in-out;
+  }
+  .tab-icon[data-active="true"] {
+    animation: nav-pop 520ms var(--ease-out);
+  }
+}
+@keyframes nav-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  35% {
+    transform: translateY(-5px);
+  }
+  62% {
+    transform: translateY(0);
+  }
+  80% {
+    transform: translateY(-2px);
+  }
+}
+@keyframes nav-wiggle {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-14deg) scale(1.1);
+  }
+  55% {
+    transform: rotate(11deg) scale(1.1);
+  }
+  80% {
+    transform: rotate(-5deg);
+  }
+}
+@keyframes nav-glow {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: none;
+  }
+  45% {
+    transform: scale(1.22);
+    filter: drop-shadow(0 0 7px rgb(255 214 110 / 0.95));
+  }
+}
+@keyframes nav-lift {
+  to {
+    transform: translateY(-3px) scale(1.14);
+  }
+}
+@keyframes nav-tilt {
+  to {
+    transform: rotate(-10deg) scale(1.12);
+  }
+}
+@keyframes nav-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.3) rotate(-6deg);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes nav-ring {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(-16deg);
+  }
+  40% {
+    transform: rotate(14deg);
+  }
+  60% {
+    transform: rotate(-10deg);
+  }
+  80% {
+    transform: rotate(6deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-enter {
+    animation: none;
+  }
+  .nav-glide {
+    transition: opacity 200ms ease;
+  }
+}
+
+/* Cards joining the work page as it grows. */
+@media (prefers-reduced-motion: no-preference) {
+  .feed-in {
+    animation: feed-in 650ms var(--ease-out) both;
+  }
+}
+@keyframes feed-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+}
+
+/* The solutions hero's two devices drift gently, out of step with each other. */
+@media (prefers-reduced-motion: no-preference) {
+  .solutions-float {
+    animation: solutions-float 7s ease-in-out infinite;
+  }
+  .solutions-float-b {
+    animation: solutions-float-b 6s ease-in-out infinite;
+  }
+}
+@keyframes solutions-float {
+  50% {
+    transform: translateY(-0.6rem);
+  }
+}
+@keyframes solutions-float-b {
+  50% {
+    transform: translateY(-0.9rem) rotate(2deg);
+  }
+}
+
+/* Section titles (components/motion/title-fx.tsx): each word rises out of its own mask. Only hidden
+   when scripts are running, so a title is never left invisible. */
+.fx-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+.fx-word-in {
+  display: inline-block;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-fx] .fx-word-in {
+    transform: translateY(115%);
+    transition: transform 900ms var(--ease-out) calc(var(--w) * 70ms);
+  }
+  .js [data-fx="in"] .fx-word-in {
     transform: none;
   }
 }
 
-/* The showreel (_home/showreel.tsx). Each new screen cuts in over the last one, which stays
-   solid underneath, then drifts a little while it plays. */
-.showreel-under {
-  z-index: 0;
+/* Technology backdrops: a circuit grid sliding behind a band, and code marks floating over it
+   (the team band), plus the small pulse used on the footer's eyebrow. */
+.tech-grid {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at 50% 40%, #000 8%, transparent 74%);
+  animation: tech-grid 16s linear infinite;
 }
-.showreel-under .showreel-img {
-  transform: scale(1.04);
+@keyframes tech-grid {
+  to {
+    background-position: 44px 44px;
+  }
 }
-.showreel-in {
-  z-index: 1;
-  animation: showreel-cut 700ms var(--ease-out) both;
-}
-.showreel-stage[data-playing="true"] .showreel-in .showreel-img {
-  animation: showreel-drift calc(var(--frame) + 700ms) linear both;
-}
-.showreel-bar[data-state="todo"] {
-  width: 0;
-}
-.showreel-bar[data-state="done"],
-.showreel-bar[data-state="on"] {
-  width: 100%;
-}
-.showreel-stage[data-playing="true"] .showreel-bar[data-state="on"] {
-  animation: showreel-progress var(--frame) linear both;
-}
-.showreel-stage[data-playing="false"] .showreel-bar[data-state="on"] {
-  width: 100%;
-}
-.showreel-control {
-  display: grid;
-  place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
+.tech-chip {
+  padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  background: var(--raised);
-  color: var(--ink);
-  transition:
-    background-color var(--t-hover) ease,
-    color var(--t-hover) ease,
-    transform var(--t-press) var(--ease-out);
+  background: rgb(255 255 255 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+  backdrop-filter: blur(6px);
+  color: rgb(190 210 255 / 0.85);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  animation: tech-float 7s ease-in-out infinite;
 }
-.showreel-control:active {
-  transform: scale(0.94);
-}
-.showreel-control-main {
-  width: 3.25rem;
-  height: 3.25rem;
-  background: var(--brand);
-  color: var(--on-brand);
-}
-.showreel-item {
-  transition: background-color var(--t-hover) ease;
-}
-@media (hover: hover) and (pointer: fine) {
-  .showreel-control:hover {
-    background: var(--accent);
-  }
-  .showreel-control-main:hover {
-    background: var(--brand-strong);
-  }
-  .showreel-stage .showreel-img {
-    transition: filter 400ms ease;
-  }
-  .showreel-stage:hover .showreel-in .showreel-img {
-    filter: brightness(0.92);
+@keyframes tech-float {
+  50% {
+    transform: translateY(-0.7rem);
   }
 }
-@keyframes showreel-cut {
+.ai-dot {
+  box-shadow: 0 0 0 0 rgb(143 176 255 / 0.7);
+  animation: ai-ping 2s ease-out infinite;
+}
+@keyframes ai-ping {
+  to {
+    box-shadow: 0 0 0 9px rgb(143 176 255 / 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tech-grid,
+  .tech-chip,
+  .ai-dot {
+    animation: none;
+  }
+}
+
+/* The footer (components/site/footer.tsx): a deep blue surface under the animated backdrop. */
+.footer-surface {
+  background:
+    radial-gradient(60rem 26rem at 92% 70%, rgb(30 80 220 / 0.32), transparent 62%),
+    radial-gradient(44rem 22rem at 0% 20%, rgb(30 64 190 / 0.28), transparent 64%),
+    linear-gradient(180deg, #060b22 0%, #050818 55%, #04060f 100%);
+}
+.footer-rule {
+  background: linear-gradient(90deg, transparent, rgb(80 130 255 / 0.55) 20%, rgb(120 165 255 / 0.8) 50%, rgb(80 130 255 / 0.55) 80%, transparent);
+}
+.footer-wave {
+  filter: drop-shadow(0 0 8px rgb(59 130 246 / 0.9));
+  animation: footer-wave linear infinite;
+  will-change: transform;
+}
+@keyframes footer-wave {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.footer-badge {
+  position: relative;
+}
+.footer-badge::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid rgb(143 176 255 / 0.6);
+  opacity: 0;
+}
+.group:is(:hover, :focus-visible) > .footer-badge {
+  background-color: rgb(59 95 230 / 0.35);
+  box-shadow: 0 0 30px -4px rgb(88 124 255 / 0.9);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .group:is(:hover, :focus-visible) > .footer-badge {
+    transform: translateY(-2px) scale(1.06);
+  }
+  .group:is(:hover, :focus-visible) > .footer-badge::after {
+    animation: badge-ring 1.2s ease-out infinite;
+  }
+}
+@keyframes badge-ring {
   from {
-    opacity: 0;
-    transform: scale(1.025);
-  }
-}
-@keyframes showreel-drift {
-  from {
+    opacity: 0.9;
     transform: scale(1);
   }
   to {
-    transform: scale(1.04);
-  }
-}
-@keyframes showreel-progress {
-  from {
-    width: 0;
+    opacity: 0;
+    transform: scale(1.5);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .showreel-in,
-  .showreel-in .showreel-img {
-    animation: none !important;
+  .footer-wave {
+    animation: none;
   }
-  .showreel-under .showreel-img {
+}
+
+/* The floating back-to-top button: the arrow bobs, and a ring pings out from it. */
+.back-top-arrow {
+  animation: back-bob 1.8s ease-in-out infinite;
+}
+.back-top-ping {
+  border: 1.5px solid rgb(143 176 255 / 0.55);
+  animation: back-ping 2.6s ease-out infinite;
+}
+@keyframes back-bob {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes back-ping {
+  from {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.55);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .back-top-arrow,
+  .back-top-ping {
+    animation: none;
+  }
+}
+
+/* The team (components/site/team-grid.tsx). Portraits rest in black and white. Looked at (or focused),
+   a card lifts and grows past its cell, takes a blue glow, turns to colour and slides the name and
+   role up over the photo. Where there is no hover (touch), the names are simply shown. */
+.team-card {
+  transition:
+    transform 520ms var(--ease-out),
+    box-shadow 520ms var(--ease-out);
+}
+.team-card:is(:hover, :focus-visible, :has(:focus-visible)) {
+  z-index: 10;
+}
+/* A sketched portrait rests as the pencil drawing, with the colour photo laid over it, hidden until looked at. */
+.team-card .team-sketch {
+  transition: transform 800ms var(--ease-out);
+}
+.team-card .team-colour {
+  opacity: 0;
+  transition:
+    opacity 600ms ease,
+    transform 800ms var(--ease-out);
+}
+.team-card:is(:hover, :focus-visible, :has(:focus-visible)) .team-colour {
+  opacity: 1;
+}
+.team-card .team-photo {
+  filter: grayscale(1) contrast(1.05);
+  transition:
+    opacity 500ms ease-out,
+    filter 600ms ease,
+    transform 800ms var(--ease-out);
+}
+/* A hairline edge that turns blue, and a sheen that sweeps across once per visit. */
+.team-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07);
+  pointer-events: none;
+  transition: box-shadow 400ms ease;
+}
+.team-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(112deg, transparent 32%, rgb(255 255 255 / 0.2) 50%, transparent 68%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+.team-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(to top, rgb(4 7 14 / 0.94) 0%, rgb(4 7 14 / 0.6) 34%, rgb(4 7 14 / 0) 66%);
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+.team-name,
+.team-role {
+  display: block;
+  opacity: 0;
+  transform: translateY(0.9rem);
+  transition:
+    opacity 300ms ease,
+    transform 300ms var(--ease-out);
+}
+.team-role {
+  transition-delay: 40ms;
+}
+.team-arrow {
+  opacity: 0;
+  transform: scale(0.5) rotate(-60deg);
+  transition:
+    opacity 300ms ease,
+    transform 520ms var(--ease-out) 90ms,
+    background-color var(--t-hover) ease;
+}
+.team-card:is(:hover, :focus-visible, :has(:focus-visible)) .team-photo {
+  filter: grayscale(0) contrast(1);
+}
+.team-card:is(:hover, :focus-visible, :has(:focus-visible))::after {
+  box-shadow: inset 0 0 0 1px rgb(88 124 255 / 0.4);
+}
+/* The blue light that circles the card's edge while it is looked at. */
+@property --team-spin {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+.team-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  padding: 2.5px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--team-spin),
+    transparent 0deg,
+    transparent 150deg,
+    rgb(45 80 210 / 0.9) 230deg,
+    rgb(150 178 255) 300deg,
+    #fff 330deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  opacity: 0;
+  filter: drop-shadow(0 0 6px rgb(88 124 255 / 0.9));
+  transition: opacity 400ms ease;
+  pointer-events: none;
+}
+.team-card:is(:hover, :focus-visible, :has(:focus-visible))::before {
+  opacity: 1;
+  animation: team-spin 2.4s linear infinite;
+}
+@keyframes team-spin {
+  to {
+    --team-spin: 360deg;
+  }
+}
+.team-card:is(:hover, :focus-visible, :has(:focus-visible)) .team-veil {
+  opacity: 1;
+}
+.team-card:is(:hover, :focus-visible, :has(:focus-visible)) :is(.team-name, .team-role) {
+  opacity: 1;
+  transform: none;
+}
+.team-card:is(:hover, :focus-visible, :has(:focus-visible)) .team-arrow {
+  opacity: 1;
+  transform: none;
+}
+.team-card:is(:hover, :focus-visible, :has(:focus-visible)) .team-arrow:hover {
+  background: var(--brand-strong);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .team-card:is(:hover, :focus-visible, :has(:focus-visible)) {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow:
+      0 0 0 1px rgb(59 95 230 / 0.6),
+      0 26px 60px -18px rgb(45 80 210 / 0.75);
+  }
+  .team-card:is(:hover, :focus-visible, :has(:focus-visible)) :is(.team-photo, .team-sketch, .team-colour) {
+    transform: scale(1.03);
+  }
+  .team-card:is(:hover, :focus-visible, :has(:focus-visible)) .team-sheen {
+    animation: team-sheen 900ms var(--ease-out) both;
+  }
+}
+@keyframes team-sheen {
+  to {
+    transform: translateX(120%);
+  }
+}
+@media (hover: none) {
+  /* No hover on a touch screen: a tap focuses the card and shows the same details. The card is not one big link there. */
+  .team-card:focus-within .team-veil {
+    opacity: 1;
+  }
+  .team-card:focus-within :is(.team-name, .team-role, .team-arrow) {
+    opacity: 1;
     transform: none;
   }
-}
-
-/* A word in a slowly moving blue gradient, as in the section titles. */
-.text-shine {
-  background-image: linear-gradient(90deg, #2445c0 0%, #3d63ea 30%, #6f8fff 50%, #3d63ea 70%, #2445c0 100%);
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  animation: text-shine 6s linear infinite;
-}
-@keyframes text-shine {
-  to {
-    background-position: -200% center;
+  .team-card:focus-within .team-colour {
+    opacity: 1;
+  }
+  .team-card:focus-within::before {
+    opacity: 1;
   }
 }
-
-/* Home: the light page rises over the pinned hero like a curtain (see .hero below). */
-.curtain {
-  position: relative;
-  z-index: 10;
-  margin-top: -100svh;
-  border-radius: 1.75rem 1.75rem 0 0;
-  box-shadow: 0 -24px 60px -20px rgb(0 0 0 / 0.55);
+/* On a mouse the whole card is the LinkedIn link, stretched from the arrow. */
+@media (hover: hover) {
+  .team-link::after {
+    content: "";
+    position: absolute;
+    inset: -9999px;
+  }
 }
-
 @media (prefers-reduced-motion: reduce) {
-  .text-shine {
+  .team-card:is(:hover, :focus-visible, :has(:focus-visible))::before {
     animation: none;
+  }
+  .team-card,
+  .team-card .team-photo,
+  .team-card .team-sketch,
+  .team-card .team-colour,
+  .team-name,
+  .team-role,
+  .team-arrow {
+    transition-duration: 1ms;
+    transition-delay: 0s;
   }
 }
 
@@ -480,6 +1263,10 @@
   .frame {
     padding-inline: max(var(--margin), calc((100% - var(--content)) / 2));
   }
+  /* The same, for a reading column: 56rem wide, centred, never squeezed by the padding. */
+  .frame-narrow {
+    padding-inline: max(var(--margin), calc((100% - 56rem) / 2));
+  }
   .grid-12 {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -489,17 +1276,14 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Text links: underline arrives on hover, never colour-only. */
+  /* Text links: no underline; they dim a little under the pointer. */
   .link {
-    text-decoration-line: underline;
-    text-decoration-color: color-mix(in oklab, currentColor 35%, transparent);
-    text-decoration-thickness: 0.07em;
-    text-underline-offset: 0.22em;
-    transition: text-decoration-color var(--t-hover) ease;
+    text-decoration: none;
+    transition: opacity var(--t-hover) ease;
   }
   @media (hover: hover) and (pointer: fine) {
     .link:hover {
-      text-decoration-color: currentColor;
+      opacity: 0.78;
     }
   }
 
@@ -595,8 +1379,7 @@
   }
   .prose-d4 a {
     color: var(--brand-ink);
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
+    text-decoration: none;
   }
   .prose-d4 ul {
     list-style: disc;
@@ -630,20 +1413,110 @@
   }
 }
 
-/* Home hero. A pinned stage on a runway: one extra screen of it is where the light page
-   (.curtain) rises over the stage. With `immersive` (set before paint) the runway also
-   carries the 3D flight. */
+/* Home hero. One screen that plays itself (components in _home/hero-3d.tsx). The page below rises a little
+   over its lower edge (.curtain). */
 .hero {
   z-index: 0;
-  height: var(--runway, 200svh);
+  height: 100svh;
+  min-height: 34rem;
 }
 .hero-stage {
-  position: sticky;
-  top: 0;
-  min-height: 100svh;
+  position: relative;
+  height: 100%;
+  min-height: 100%;
 }
-.immersive .hero-stage {
-  height: 100svh;
+.curtain {
+  position: relative;
+  z-index: 10;
+  margin-top: -1.75rem;
+  border-radius: 1.75rem 1.75rem 0 0;
+  box-shadow: 0 -24px 60px -20px rgb(0 0 0 / 0.55);
+}
+/* A word in a slowly moving blue gradient, as in the section titles. */
+.text-shine {
+  background-image: linear-gradient(90deg, #2445c0 0%, #3d63ea 30%, #6f8fff 50%, #3d63ea 70%, #2445c0 100%);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: text-shine 6s linear infinite;
+}
+@keyframes text-shine {
+  to {
+    background-position: -200% center;
+  }
+}
+/* TitleFx wraps each word in its own boxes, so the gradient is painted on the words themselves. */
+.text-shine :is(.fx-word, .fx-word-in) {
+  background-image: inherit;
+  background-size: inherit;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: inherit;
+}
+@media (prefers-reduced-motion: reduce) {
+  .text-shine {
+    animation: none;
+  }
+}
+/* The opening words give way once the flight starts, and return when the slideshow comes round again. */
+[data-hero-copy] {
+  transition:
+    opacity 700ms var(--ease-out),
+    transform 700ms var(--ease-out),
+    visibility 0s linear 0s;
+}
+.immersive [data-hero][data-intro="off"] [data-hero-copy] {
+  opacity: 0;
+  transform: translateY(-2.5rem);
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 700ms var(--ease-out),
+    transform 700ms var(--ease-out),
+    visibility 0s linear 700ms;
+}
+/* Slider controls over the hero. */
+.hero-ctl {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  color: #fff;
+  transition:
+    background-color var(--t-hover) ease,
+    transform var(--t-press) var(--ease-out);
+}
+.hero-ctl:active {
+  transform: scale(0.9);
+}
+@media (hover: hover) and (pointer: fine) {
+  .hero-ctl:hover {
+    background: rgb(255 255 255 / 0.18);
+  }
+}
+.hero-dot-fill {
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: hero-dot-fill linear forwards;
+}
+@keyframes hero-dot-fill {
+  to {
+    transform: scaleX(1);
+  }
+}
+.hero-canvas-fading {
+  opacity: 0 !important;
+  transition-duration: 450ms !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-dot-fill {
+    animation: none;
+    transform: scaleX(1);
+  }
 }
 .hero-canvas {
   opacity: 0;
@@ -850,4 +1723,27 @@ html.lenis body {
 }
 .lenis.lenis-stopped {
   overflow: clip;
+}
+
+/* A row that scrolls sideways without a visible bar (filter chips on a phone). */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* On a phone the site behaves like an app: no tap flash, no double-tap zoom delay, taps give a press. */
+@media (max-width: 767px) {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  a,
+  button,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+  .btn:active {
+    transform: scale(0.97);
+  }
 }

@@ -1,0 +1,152 @@
+/*
+ * The admin's light theme.
+ *
+ * The site is dark by default and its <html> carries `dark`. The admin layout renders `.admin-root`, and
+ * `html:has(.admin-root)` restates the palette on <html> itself, so everything the admin shows is light,
+ * including menus, dialogs and toasts (which portal to <body>, outside any wrapper). It needs no script
+ * and no class change, there is no flash, and it lifts as soon as the admin is left. The palette is the
+ * site's own light one (`.theme-light` in globals.css) plus what the admin needs on top.
+ *
+ * The shadcn primitives are shared with the public forms, so they are bent to the admin's shapes here,
+ * scoped to the admin, and not edited in place.
+ */
+html:has(.admin-root) {
+  color-scheme: light;
+
+  --ground: #f5f7fc;
+  --raised: #ffffff;
+  --raised-2: #edf1fa;
+  --ink: #0b1430;
+  --soft: #556080;
+  --border: #e1e6f2;
+  --accent: #eef2fb;
+  --input: #cfd6e6;
+  --ring: var(--brand);
+  --popover: #ffffff;
+  --primary-foreground: #ffffff;
+  --destructive: #c8283f;
+  --radius: 0.625rem;
+
+  /* Brand blue as text on white and on its own tint (4.5:1 or better on both). */
+  --brand-ink: #2445c0;
+  --brand-strong: #2445c0;
+  --brand-tint: #e7ecfd;
+  --brand-line: #b9c7f5;
+  /* Published / open: green text on a pale green. */
+  --positive: #17703f;
+  --positive-tint: #e2f4e8;
+  /* Neutral chips (draft, read, archived), table headers, danger. */
+  --chip: #edf1fa;
+  --chip-ink: #556080;
+  --head: #f8f9fd;
+  --danger-line: #f0c3cb;
+  --danger-tint: #fdecef;
+  --shadow-card: 0 1px 2px rgb(11 20 48 / 0.04);
+}
+
+/* Skeletons: a faint blue sweep on the pale ground. */
+html:has(.admin-root) .shimmer::after {
+  background: linear-gradient(90deg, transparent 0%, rgb(45 80 210 / 0.06) 50%, transparent 100%);
+}
+
+/* Buttons: a 10px corner instead of the site's pill, a touch heavier, 40px tall on desktop. */
+html:has(.admin-root) [data-slot="button"] {
+  border-radius: 0.625rem;
+  font-weight: 600;
+}
+html:has(.admin-root) [data-slot="button"][data-size="icon"],
+html:has(.admin-root) [data-slot="button"][data-size="icon-sm"] {
+  border-radius: 0.5rem;
+}
+@media (min-width: 768px) {
+  html:has(.admin-root) [data-slot="button"][data-size="default"] {
+    height: 2.5rem;
+  }
+}
+html:has(.admin-root) [data-slot="button"][data-variant="outline"] {
+  background: var(--raised);
+  border-color: var(--input);
+  box-shadow: var(--shadow-card);
+}
+html:has(.admin-root) [data-slot="button"][data-variant="outline"]:hover {
+  background: var(--ground);
+  border-color: color-mix(in oklab, var(--input), var(--ink) 18%);
+}
+html:has(.admin-root) [data-slot="button"][data-variant="destructive"] {
+  background: var(--raised);
+  color: var(--destructive);
+  border-color: var(--danger-line);
+}
+html:has(.admin-root) [data-slot="button"][data-variant="destructive"]:hover {
+  background: var(--danger-tint);
+}
+html:has(.admin-root) [data-slot="button"][data-variant="ghost"]:hover {
+  background: var(--accent);
+}
+
+/* Switches and checkboxes take the brand blue when on (the primitives default to the ink colour). */
+html:has(.admin-root) [data-slot="switch"][data-checked],
+html:has(.admin-root) [data-slot="switch"][data-state="checked"] {
+  background: var(--brand);
+}
+html:has(.admin-root) [data-slot="switch"] [data-slot="switch-thumb"] {
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(11 20 48 / 0.25);
+}
+html:has(.admin-root) [data-slot="checkbox"] {
+  background: var(--raised);
+}
+html:has(.admin-root) [data-slot="checkbox"][data-checked],
+html:has(.admin-root) [data-slot="checkbox"][data-state="checked"] {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
+}
+
+/* Menus, selects and dialogs: a hairline border and a soft shadow rather than the dark ring. */
+html:has(.admin-root) [data-slot="select-content"],
+html:has(.admin-root) [data-slot="dropdown-menu-content"],
+html:has(.admin-root) [data-slot="popover-content"] {
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 32px rgb(11 20 48 / 0.12);
+}
+
+/* Form controls sit on white cards; the dark-theme tint (`dark:bg-input/30`) must not show. */
+html:has(.admin-root) [data-slot="input"],
+html:has(.admin-root) [data-slot="textarea"],
+html:has(.admin-root) [data-slot="select-trigger"] {
+  background: var(--raised);
+}
+
+/* The confirm button in a delete dialog is the one place a destructive action is drawn solid. */
+html:has(.admin-root) [data-slot="alert-dialog-content"] [data-slot="button"][data-variant="destructive"] {
+  background: var(--destructive);
+  border-color: transparent;
+  color: #fff;
+}
+html:has(.admin-root) [data-slot="alert-dialog-content"] [data-slot="button"][data-variant="destructive"]:hover {
+  background: color-mix(in oklab, var(--destructive), #000 12%);
+}
+
+/* The dark sidebar: deep navy with a blue glow rising from the corner, and the lit pill for the current page. */
+html:has(.admin-root) .admin-side {
+  color: #fff;
+  background:
+    radial-gradient(120% 55% at 0% 100%, rgb(45 100 255 / 0.38), transparent 62%),
+    radial-gradient(90% 40% at 100% 0%, rgb(60 90 220 / 0.16), transparent 70%),
+    linear-gradient(180deg, #06112b 0%, #071a45 55%, #0a2766 100%);
+  border-right: 1px solid rgb(255 255 255 / 0.06);
+}
+html:has(.admin-root) .admin-nav-active {
+  background: linear-gradient(135deg, #2f6bff 0%, #1f4fe0 100%);
+  box-shadow:
+    0 8px 22px -8px rgb(47 107 255 / 0.9),
+    inset 0 1px 0 rgb(255 255 255 / 0.22);
+}
+html:has(.admin-root) .admin-side nav a:not(.admin-nav-active):hover {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+}
+/* Cards: a hairline border and a soft, wide shadow, so pages feel lifted off the pale ground. */
+html:has(.admin-root) {
+  --shadow-card: 0 1px 2px rgb(11 20 48 / 0.04), 0 8px 24px -12px rgb(11 20 48 / 0.08);
+}

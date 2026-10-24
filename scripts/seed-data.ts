@@ -33,7 +33,7 @@ export const PROJECTS: SeedProject[] = [
     features: ["Prayer tracking", "Quran reading", "Duas and dhikr", "Qibla direction", "Daily activity monitoring"],
     platforms: ["android"],
     links: { playStore: "https://play.google.com/store/apps/details?id=app.hisaabi" },
-    images: ["hisabi1a.avif", "hisabi1.avif", "hisabi2-2.avif", "hisabi3b-1.avif"],
+    images: ["hisabi1a.webp", "hisabi1.webp", "hisabi2-2.webp", "hisabi3b-1.webp"],
   },
   {
     title: "Thanima Hajj & Umrah",
@@ -46,7 +46,7 @@ export const PROJECTS: SeedProject[] = [
     features: ["Live weather for Makkah and Madinah", "Camps, buildings and hospitals on the map", "Official and group helplines", "Prayer times and notifications", "Qibla finder and tasbeeh counter", "Offline access"],
     platforms: ["android"],
     links: { playStore: "https://play.google.com/store/apps/details?id=com.thanimahajjumra.app" },
-    images: ["hajj-app-2.avif", "hajj-app-4.avif", "hajj-app-3-1.avif"],
+    images: ["hajj-app-2.webp", "hajj-app-4.webp", "hajj-app-3-1.webp"],
   },
   {
     title: "Thafheem ul Quran",
@@ -59,7 +59,7 @@ export const PROJECTS: SeedProject[] = [
     features: ["Complete tafseer by Maulana Maududi", "Search across Quran, translation and tafseer", "Arabic and Urdu fonts, dark and night themes", "Bookmarks, last-read and quick jump", "Mushaf and translation-only modes", "Offline reading", "Multilingual"],
     platforms: ["android", "ios"],
     links: { playStore: "https://play.google.com/store/apps/details?id=com.d4media.thafheem", website: "https://thafheem.net/" },
-    images: ["thaf1.jpg", "1.avif", "3.avif", "5.avif"],
+    images: ["thaf1.webp", "1.webp", "3.webp", "5.webp"],
   },
   {
     title: "QSPOT",
@@ -75,7 +75,7 @@ export const PROJECTS: SeedProject[] = [
       playStore: "https://play.google.com/store/apps/details?id=co.d4dx.qspot",
       appStore: "https://apps.apple.com/in/app/qspot-ott/id6753100715",
     },
-    images: ["q-spot1.avif", "q-spot-2.avif"],
+    images: ["q-spot1.webp", "q-spot-2.webp"],
   },
   {
     title: "Janaza Guide",
@@ -91,7 +91,7 @@ export const PROJECTS: SeedProject[] = [
       playStore: "https://play.google.com/store/apps/details?id=co.d4dx.janazaguide",
       appStore: "https://apps.apple.com/in/app/janaza-guide/id6742624606",
     },
-    images: ["janazaguide1.avif"],
+    images: ["janazaguide1.webp"],
   },
   {
     title: "Thafheem ul Quran website",
@@ -104,7 +104,7 @@ export const PROJECTS: SeedProject[] = [
     features: ["Complete tafseer online", "Audio commentary", "Search across verses and topics"],
     platforms: ["web"],
     links: { website: "https://thafheem.net/" },
-    images: ["thaf-web.avif"],
+    images: ["thaf-web.webp"],
   },
   {
     title: "Zai Toon Kids",
@@ -117,7 +117,7 @@ export const PROJECTS: SeedProject[] = [
     features: ["Stories in Malayalam and English", "Illustrated, interactive pages", "Made for ages 5+"],
     platforms: ["android"],
     links: { playStore: "https://play.google.com/store/apps/details?id=co.d4dx.zaitoon" },
-    images: ["zaitoon1b.avif", "zaitoon2b.avif", "zaitoon3b.avif"],
+    images: ["zaitoon1b.webp", "zaitoon2b.webp", "zaitoon3b.webp"],
   },
   {
     title: "Hira Plus",
@@ -130,7 +130,7 @@ export const PROJECTS: SeedProject[] = [
     features: ["Meal marking per day and slot", "Monthly meal counts", "Less food waste"],
     platforms: ["android"],
     links: { playStore: "https://play.google.com/store/apps/details?id=com.d4dx.hiraplus" },
-    images: ["hira.avif", "hira2.avif"],
+    images: ["hira.webp", "hira2.webp"],
   },
   {
     title: "Quran Lalithasaram",
@@ -143,7 +143,7 @@ export const PROJECTS: SeedProject[] = [
     features: ["Clear Arabic text, adjustable size", "Audio recitations", "Bookmarks and notes", "Search", "Offline access"],
     platforms: ["android"],
     links: { playStore: "https://play.google.com/store/apps/details?id=com.d4media.lalithasaram", website: "https://lalithasaram.net/" },
-    images: ["lali-app.avif", "lali-app-2.avif", "lali-app3.avif"],
+    images: ["lali-app.webp", "lali-app-2.webp", "lali-app3.webp"],
   },
   {
     title: "Al Quran Malayalam",
@@ -156,7 +156,7 @@ export const PROJECTS: SeedProject[] = [
     features: ["Complete Malayalam translation", "Word-by-word meanings", "Bookmarks", "Offline access"],
     platforms: ["android"],
     links: { playStore: "https://play.google.com/store/apps/details?id=com.d4media.AlQuranMalayalam", website: "https://alquranmalayalam.net/" },
-    images: ["alquran.jpg", "alquran2.jpg", "alquran3.jpg"],
+    images: ["alquran.webp", "alquran2.webp", "alquran3.webp"],
   },
   {
     title: "Quran Lalithasaram website",
@@ -169,7 +169,7 @@ export const PROJECTS: SeedProject[] = [
     features: ["Complete Quran in Malayalam", "Topic-based navigation", "Audio recitations"],
     platforms: ["web"],
     links: { website: "https://lalithasaram.net/" },
-    images: ["lalithasaram-web2.avif"],
+    images: ["lalithasaram-web2.webp"],
   },
 ];
 
@@ -209,19 +209,19 @@ export const SERVICES = [
 ];
 
 export const TEAM = [
-  { name: "Shameer Babu", role: "CEO", photo: "shameer.avif" },
-  { name: "KA Naser", role: "HR and Admin", photo: "nasar.avif" },
-  { name: "Safeer K K", role: "Digital Product Designer", photo: "safeer.avif" },
-  { name: "Jahfar Swadikh K", role: "MERN Stack Developer", photo: "jahfer.avif" },
-  { name: "Muhammed Ilyas MK", role: "MERN Stack Developer", photo: "illyas1-1.avif" },
-  { name: "Muhammed Nihal M", role: "Flutter Developer", photo: "nihal.avif" },
-  { name: "Shamil Thasneem TM", role: "Business Executive", photo: "shamil.avif" },
-  { name: "Shahjaz Saleem", role: "Flutter Developer", photo: "shahjaz-1.avif" },
-  { name: "Risha Mariyam KV", role: "Quality Analyst Intern", photo: "risha.avif" },
-  { name: "Shanida", role: "MERN Stack Intern", photo: "shahida2.avif" },
-  { name: "Aliya Rasheed", role: "Flutter Intern", photo: "aliya2.avif" },
-  { name: "Suhana RS", role: "ERP Executive Intern", photo: "suhana.avif" },
-  { name: "Jahana Sherin KJ", role: "Quality Analyst Intern", photo: "jahan.avif" },
+  { name: "Shameer Babu", role: "CEO", photo: "shameer.webp" },
+  { name: "KA Naser", role: "HR and Admin", photo: "nasar.webp" },
+  { name: "Safeer K K", role: "Digital Product Designer", photo: "safeer.webp" },
+  { name: "Jahfar Swadikh K", role: "MERN Stack Developer", photo: "jahfer.webp" },
+  { name: "Muhammed Ilyas MK", role: "MERN Stack Developer", photo: "illyas1-1.webp" },
+  { name: "Muhammed Nihal M", role: "Flutter Developer", photo: "nihal.webp" },
+  { name: "Shamil Thasneem TM", role: "Business Executive", photo: "shamil.webp" },
+  { name: "Shahjaz Saleem", role: "Flutter Developer", photo: "shahjaz-1.webp" },
+  { name: "Risha Mariyam KV", role: "Quality Analyst Intern", photo: "risha.webp" },
+  { name: "Shanida", role: "MERN Stack Intern", photo: "shahida2.webp" },
+  { name: "Aliya Rasheed", role: "Flutter Intern", photo: "aliya2.webp" },
+  { name: "Suhana RS", role: "ERP Executive Intern", photo: "suhana.webp" },
+  { name: "Jahana Sherin KJ", role: "Quality Analyst Intern", photo: "jahan.webp" },
 ];
 
 export const TESTIMONIALS = [

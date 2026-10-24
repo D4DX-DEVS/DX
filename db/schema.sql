@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS projects (
   links TEXT NOT NULL DEFAULT '{}',
   cover TEXT NOT NULL,
   gallery TEXT NOT NULL DEFAULT '[]',
+  video TEXT NOT NULL DEFAULT '',
   featured INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('published', 'draft')),
   sort_order INTEGER NOT NULL DEFAULT 0,
@@ -56,6 +57,7 @@ CREATE TABLE IF NOT EXISTS team_members (
   name TEXT NOT NULL CHECK (length(name) <= 80),
   role TEXT NOT NULL CHECK (length(role) <= 80),
   photo TEXT,
+  photo_sketch TEXT,
   linkedin TEXT NOT NULL DEFAULT '',
   published INTEGER NOT NULL DEFAULT 1,
   sort_order INTEGER NOT NULL DEFAULT 0,
@@ -86,6 +88,9 @@ CREATE TABLE IF NOT EXISTS posts (
   content TEXT NOT NULL DEFAULT '',
   cover TEXT,
   tags TEXT NOT NULL DEFAULT '[]',
+  website TEXT NOT NULL DEFAULT '',
+  play_store TEXT NOT NULL DEFAULT '',
+  app_store TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('published', 'draft')),
   published_at TEXT,
   created_at TEXT NOT NULL,
@@ -133,6 +138,8 @@ CREATE TABLE IF NOT EXISTS applications (
   github_url TEXT NOT NULL DEFAULT '' CHECK (length(github_url) <= 300),
   message TEXT NOT NULL DEFAULT '' CHECK (length(message) <= 3000),
   resume TEXT NOT NULL,
+  certificates TEXT NOT NULL DEFAULT '',
+  details TEXT NOT NULL DEFAULT '{}',
   status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'read', 'archived')),
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
@@ -144,6 +151,8 @@ CREATE TABLE IF NOT EXISTS pages (
   slug TEXT NOT NULL UNIQUE,
   title TEXT NOT NULL CHECK (length(title) <= 120),
   content TEXT NOT NULL DEFAULT '',
+  -- 'legal' pages are listed in the footer and served at /legal; 'careers' pages fill the Join Our Team page.
+  section TEXT NOT NULL DEFAULT 'legal',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );

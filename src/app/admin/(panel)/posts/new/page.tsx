@@ -14,7 +14,7 @@ async function NewPost() {
   return (
     <PostForm
       id={null}
-      initial={{ title: "", slug: "", excerpt: "", content: "", cover: null, tags: [], status: "draft", publishedAt: today }}
+      initial={{ title: "", slug: "", excerpt: "", content: "", cover: null, tags: [], website: "", playStore: "", appStore: "", status: "draft", publishedAt: today }}
     />
   );
 }

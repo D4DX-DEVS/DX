@@ -1,30 +1,34 @@
+import logoFull from "@/assets/brand/logo.webp";
+import logo160 from "@/assets/brand/logo-160.webp";
+import logo320 from "@/assets/brand/logo-320.webp";
 import { MARK, WORDMARK } from "./paths";
 
-const WORD_SCALE = (MARK.height * 0.56) / WORDMARK.height;
-const GAP = 150;
-const WORD_X = MARK.width + GAP;
-const WORD_Y = (MARK.height - WORDMARK.height * WORD_SCALE) / 2;
-const WIDTH = Math.ceil(WORD_X + WORDMARK.width * WORD_SCALE);
+// The main logo: the supplied artwork (the blue mark with D4DX set in white for dark grounds), kept as
+// lossless WebP at three widths so every screen density gets a copy close to the size it is drawn at, which
+// keeps the thin letters sharp. A plain <img> on purpose: next/image would recompress it.
+const SRC_SET = `${logo160.src} 160w, ${logo320.src} 320w, ${logoFull.src} 448w`;
 
 interface LogoProps {
   className?: string;
   title?: string;
-  /** "brand" draws the mark in the logo's blue, as the original artwork does; "mono" uses the text colour throughout. */
-  tone?: "brand" | "mono";
+  /** The width it is drawn at, for choosing a file (the default suits the header and footer). */
+  sizes?: string;
 }
 
-/** The D4DX lockup: the four-panel mark beside the wordmark, which takes the current text colour. */
-export function Logo({ className, title = "D4DX", tone = "brand" }: LogoProps) {
+/** The D4DX logo, for dark grounds. Size it by height (`h-8 w-auto`). */
+export function Logo({ className, title = "D4DX", sizes = "160px" }: LogoProps) {
   return (
-    <svg viewBox={`0 0 ${WIDTH} ${MARK.height}`} className={className} role="img" aria-label={title} fill="currentColor">
-      <g fill={tone === "brand" ? "var(--brand-strong)" : undefined}>
-        <path d={MARK.body.d} />
-        <path d={MARK.top.d} />
-        <path d={MARK.notch.d} />
-        <path d={MARK.bottom.d} />
-      </g>
-      <path d={WORDMARK.d} transform={`translate(${WORD_X} ${WORD_Y}) scale(${WORD_SCALE})`} />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={logoFull.src}
+      srcSet={SRC_SET}
+      sizes={sizes}
+      width={logoFull.width}
+      height={logoFull.height}
+      alt={title}
+      decoding="async"
+      className={className}
+    />
   );
 }
 

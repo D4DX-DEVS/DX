@@ -25,13 +25,13 @@ async function Legal({ slug }: { slug: string }) {
 
   return (
     <article>
-      <header className="frame mx-auto max-w-4xl pt-[clamp(2.5rem,6vw,5rem)] pb-10">
+      <header className="frame-narrow pt-[clamp(2.5rem,6vw,5rem)] pb-10">
         <p className="eyebrow">Legal</p>
         <h1 className="mt-4 text-[clamp(2rem,4vw,3.25rem)] leading-[1.05] font-medium tracking-[-0.03em]">{page.title}</h1>
         {page.updatedAt ? <p className="mt-4 text-sm text-soft">Last updated {formatDate(page.updatedAt)}</p> : null}
       </header>
       <div className="theme-light">
-        <div className="frame mx-auto max-w-4xl py-[clamp(2.5rem,5vw,4rem)]">
+        <div className="frame-narrow py-[clamp(2.5rem,5vw,4rem)]">
           <div className="prose-d4" dangerouslySetInnerHTML={{ __html: sanitizeRichText(page.content) }} />
         </div>
       </div>
@@ -43,7 +43,7 @@ export default function LegalPage({ params }: PageProps<"/legal/[slug]">) {
   return (
     <Suspense
       fallback={
-        <div className="frame mx-auto max-w-4xl pt-[clamp(2.5rem,6vw,5rem)]" aria-busy="true" aria-label="Loading">
+        <div className="frame-narrow pt-[clamp(2.5rem,6vw,5rem)]" aria-busy="true" aria-label="Loading">
           <Skeleton className="h-12 w-2/3 rounded-xl" />
           <Lines count={10} className="mt-12" />
         </div>

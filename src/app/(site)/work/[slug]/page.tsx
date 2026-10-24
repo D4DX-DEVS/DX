@@ -1,16 +1,18 @@
-import { ArrowLeft, ArrowRight, ArrowUpRight, CircleCheck, Globe } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, CircleCheck, Globe } from "@/components/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ShimmerImage } from "@/components/media/shimmer-image";
-import { Reveal } from "@/components/motion/reveal";
+import { ProjectGallery } from "@/components/site/project-gallery";
+import { ProjectMedia } from "@/components/site/project-media";
 import { Lines } from "@/components/site/skeletons";
+import { AppStoreBadge, GooglePlayBadge } from "@/components/site/store-badges";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getProject, getProjectIndex } from "@/lib/data/public";
 import { sanitizeRichText } from "@/lib/sanitize";
 import type { Platform } from "@/lib/types";
-import { Cta } from "../../_home/cta";
+import { TitleFx } from "@/components/motion/title-fx";
 
 const PLATFORM_LABEL: Record<Platform, string> = { android: "Android", ios: "iOS", web: "Web", desktop: "Desktop" };
 
@@ -48,11 +50,8 @@ async function Project({ slug }: { slug: string }) {
   const at = index.findIndex((p) => p.slug === slug);
   const next = index.length > 1 ? index[(at + 1) % index.length] : null;
   const prev = index.length > 1 ? index[(at - 1 + index.length) % index.length] : null;
-  const links = [
-    { label: "Google Play", href: project.links.playStore },
-    { label: "App Store", href: project.links.appStore },
-    { label: "Website", href: project.links.website },
-  ].filter((l) => l.href);
+  const { playStore, appStore, website } = project.links;
+  const hasLinks = Boolean(playStore || appStore || website);
 
   return (
     <article>
@@ -69,24 +68,24 @@ async function Project({ slug }: { slug: string }) {
           <p className="eyebrow mt-6">{project.category.name}</p>
           <h1 className="mt-4 max-w-[20ch] text-[length:var(--step-xl)] leading-[1.02] font-medium tracking-[-0.035em]">{project.title}</h1>
           {project.summary ? <p className="mt-6 max-w-[56ch] text-[length:var(--step-lead)] leading-[1.5] text-soft">{project.summary}</p> : null}
-          {links.length ? (
-            <div className="mt-8 flex flex-wrap gap-3">
-              {links.map((l, i) => (
-                <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className={i === 0 ? "btn btn-brand" : "btn btn-quiet"}>
-                  {l.label === "Website" ? <Globe className="size-4" aria-hidden="true" /> : null}
-                  {l.label}
+          {hasLinks ? (
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              {playStore ? <GooglePlayBadge href={playStore} app={project.title} /> : null}
+              {appStore ? <AppStoreBadge href={appStore} app={project.title} /> : null}
+              {website ? (
+                <a href={website} target="_blank" rel="noopener noreferrer" className="btn btn-quiet h-14 rounded-xl">
+                  <Globe className="size-5" aria-hidden="true" />
+                  Visit the website
                   <ArrowUpRight className="size-4" aria-hidden="true" />
                 </a>
-              ))}
+              ) : null}
             </div>
           ) : null}
-          <ShimmerImage
-            media={project.cover}
-            alt={project.cover.alt || project.title}
-            fill
-            preload
-            sizes="(min-width: 1400px) 1340px, 100vw"
-            className="mt-[clamp(2.5rem,5vw,4rem)] aspect-[16/9] rounded-t-3xl bg-raised"
+          <ProjectMedia
+            cover={project.cover}
+            video={project.video}
+            title={project.title}
+            className="mx-auto mt-[clamp(2.5rem,5vw,4rem)] max-w-[1040px] rounded-t-3xl"
           />
         </div>
       </header>
@@ -105,9 +104,9 @@ async function Project({ slug }: { slug: string }) {
             {project.body ? <div className="prose-d4" dangerouslySetInnerHTML={{ __html: sanitizeRichText(project.body) }} /> : null}
             {project.features.length ? (
               <section aria-labelledby="features-title" className="mt-12">
-                <h2 id="features-title" className="text-[length:var(--step-head)] leading-tight font-semibold tracking-[-0.02em]">
+                <TitleFx as="h2" id="features-title" className="text-[length:var(--step-head)] leading-tight font-semibold tracking-[-0.02em]">
                   What it does
-                </h2>
+                </TitleFx>
                 <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {project.features.map((f) => (
                     <li key={f} className="flex gap-3 rounded-2xl border border-border bg-raised p-4 leading-snug">
@@ -123,18 +122,9 @@ async function Project({ slug }: { slug: string }) {
 
         {project.gallery.length ? (
           <section aria-label="Screens" className="frame pt-[var(--section-gap)]">
-            <Reveal stagger={0.06} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {project.gallery.map((m, i) => (
-                <div key={m.url} data-reveal className={i % 3 === 0 ? "sm:col-span-2" : undefined}>
-                  <ShimmerImage
-                    media={m}
-                    alt={m.alt || `${project.title}, screen ${i + 1}`}
-                    sizes={i % 3 === 0 ? "(min-width: 1400px) 1340px, 100vw" : "(min-width: 640px) 50vw, 100vw"}
-                    className="rounded-3xl bg-raised-2"
-                  />
-                </div>
-              ))}
-            </Reveal>
+            <div className="mx-auto max-w-[68rem]">
+              <ProjectGallery images={project.gallery} title={project.title} />
+            </div>
           </section>
         ) : null}
 
@@ -163,7 +153,6 @@ async function Project({ slug }: { slug: string }) {
           </nav>
         ) : null}
 
-        <Cta />
       </div>
     </article>
   );

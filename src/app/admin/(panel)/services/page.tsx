@@ -1,4 +1,4 @@
-import { Pencil, Plus, Sparkles } from "lucide-react";
+import { Pencil, Plus, Sparkles } from "@/components/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -50,7 +50,7 @@ async function ServicesTable({ searchParams }: { searchParams: Search }) {
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto rounded-2xl border border-border bg-raised">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-raised shadow-[var(--shadow-card)]">
         <Table>
           <TableHeader>
             <TableRow>

@@ -31,16 +31,19 @@ export async function putObject(kind: BucketKind, key: string, body: Uint8Array,
 
 export interface StoredObject {
   body: ReadableStream<Uint8Array>;
+  /** Bytes in `body` (the requested range when there was one). */
   size: number | undefined;
   contentType: string | undefined;
+  /** Set when a byte range was served, as "bytes 0-99/1000". */
+  contentRange?: string;
 }
 
 /** Returns null when the key does not exist. */
-export async function getObject(kind: BucketKind, key: string): Promise<StoredObject | null> {
+export async function getObject(kind: BucketKind, key: string, range?: string): Promise<StoredObject | null> {
   try {
-    const res = await client().send(new GetObjectCommand({ Bucket: bucket(kind), Key: key }));
+    const res = await client().send(new GetObjectCommand({ Bucket: bucket(kind), Key: key, Range: range }));
     if (!res.Body) return null;
-    return { body: res.Body.transformToWebStream(), size: res.ContentLength, contentType: res.ContentType };
+    return { body: res.Body.transformToWebStream(), size: res.ContentLength, contentType: res.ContentType, contentRange: res.ContentRange };
   } catch (error: unknown) {
     if (error instanceof Error && (error.name === "NoSuchKey" || error.name === "NotFound")) return null;
     throw error;
@@ -98,6 +101,6 @@ export function mediaKeyFromUrl(url: string | null | undefined): string | null {
   let rest: string | null = null;
   if (url.startsWith("/media/")) rest = url.slice("/media/".length);
   else if (base && url.startsWith(`${base}/media/`)) rest = url.slice(`${base}/media/`.length);
-  if (!rest || !/^[0-9]{4}\/[0-9]{2}\/[a-z0-9-]+\.(webp|avif|jpg|jpeg|png)$/.test(rest)) return null;
+  if (!rest || !/^(videos\/)?[0-9]{4}\/[0-9]{2}\/[a-z0-9-]+\.(webp|avif|jpg|jpeg|png|mp4|webm)$/.test(rest)) return null;
   return `media/${rest}`;
 }

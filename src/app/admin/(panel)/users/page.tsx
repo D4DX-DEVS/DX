@@ -1,4 +1,4 @@
-import { Pencil, Plus, ShieldCheck } from "lucide-react";
+import { Pencil, Plus, ShieldCheck } from "@/components/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -35,7 +35,7 @@ async function UsersTable({ searchParams }: { searchParams: Search }) {
   return (
     <div className="space-y-4">
       {/* Name and role first; email and last sign-in step aside on small screens. */}
-      <div className="overflow-x-auto rounded-2xl border border-border bg-raised">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-raised shadow-[var(--shadow-card)]">
         <Table>
           <TableHeader>
             <TableRow>

@@ -88,3 +88,18 @@ export function markOpen(progress: number, count: number): number {
   const c = Math.min(1, Math.max(0, t));
   return c * c * (3 - 2 * c);
 }
+
+/** How far ahead of a panel the camera rests while that slide is showing (clear of the caption handover). */
+const SLIDE_AHEAD = 3.6;
+
+/**
+ * The scene's slides as camera progress values: the opening mark, then one rest in front of each
+ * project's panel, then the closing wordmark. The hero's slider moves between these.
+ */
+export function slideStops(count: number): number[] {
+  const t = travel(count);
+  const panels = Array.from({ length: count }, (_, i) =>
+    Math.min(1, Math.max(0, (CAMERA_START_Z - (panelZ(i) + SLIDE_AHEAD)) / t)),
+  );
+  return [0, ...panels, 1];
+}

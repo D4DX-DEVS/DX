@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import { SmoothScroll } from "@/components/motion/smooth-scroll";
+import { BackToTop } from "@/components/site/back-to-top";
 import { Footer } from "@/components/site/footer";
 import { Header } from "@/components/site/header";
+import { BottomNav } from "@/components/site/site-nav";
 
 export default function SiteLayout({ children }: LayoutProps<"/">) {
   return (
@@ -15,6 +17,8 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
       <Suspense fallback={<div className="h-[60svh]" />}>
         <Footer />
       </Suspense>
+      <BottomNav />
+      <BackToTop />
       <SmoothScroll />
     </>
   );

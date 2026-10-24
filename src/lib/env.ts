@@ -18,6 +18,10 @@ const schema = z.object({
   R2_ENDPOINT: z.url().optional(),
   // Public bucket domain (custom domain or r2.dev). When unset, images are proxied through /media.
   R2_PUBLIC_URL: z.url().optional(),
+  // Optional. With a key, team portraits are redrawn as pencil sketches by OpenAI's image model when saved;
+  // without one (or if a call fails) the built-in pencil filter is used instead.
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  OPENAI_IMAGE_MODEL: z.string().min(1).default("gpt-image-1"),
   DEBUG_DB: z.enum(["0", "1"]).default("0"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });

@@ -1,4 +1,4 @@
-import { Eye, Inbox } from "lucide-react";
+import { Eye, Inbox } from "@/components/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -9,10 +9,13 @@ import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton, ToolbarSkeleton } from "@/components/admin/skeletons";
 import { EmptyState } from "@/components/admin/states";
 import { StatusBadge } from "@/components/admin/status-badge";
+import { StatusTabs } from "@/components/admin/status-tabs";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { deleteInquiry } from "@/lib/actions/admin/inquiries";
 import { listInquiries } from "@/lib/data/admin/inquiries";
+import { getStatusCounts } from "@/lib/data/admin/inbox";
 import { dateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -20,15 +23,10 @@ export const metadata: Metadata = { title: "Inquiries" };
 
 type Search = PageProps<"/admin/inquiries">["searchParams"];
 
-const STATUS_FILTER = {
-  name: "status",
-  label: "Statuses",
-  options: [
-    { value: "new", label: "New" },
-    { value: "read", label: "Read" },
-    { value: "archived", label: "Archived" },
-  ],
-};
+async function Tabs({ searchParams }: { searchParams: Search }) {
+  const [params, counts] = await Promise.all([searchParams, getStatusCounts("inquiries")]);
+  return <StatusTabs counts={counts} params={params} basePath="/admin/inquiries" />;
+}
 
 async function InquiriesTable({ searchParams }: { searchParams: Search }) {
   const params = await searchParams;
@@ -46,11 +44,12 @@ async function InquiriesTable({ searchParams }: { searchParams: Search }) {
   return (
     <div className="space-y-4">
       {/* Sender and status first; the service and date step aside on small screens. */}
-      <div className="overflow-x-auto rounded-2xl border border-border bg-raised">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-raised shadow-[var(--shadow-card)]">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="md:min-w-56">From</TableHead>
+              <TableHead className="hidden xl:table-cell">Message</TableHead>
               <TableHead className="hidden md:table-cell">Service</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="hidden sm:table-cell">Received</TableHead>
@@ -68,6 +67,7 @@ async function InquiriesTable({ searchParams }: { searchParams: Search }) {
                     <span className="block truncate text-xs text-soft">{i.email}</span>
                   </Link>
                 </TableCell>
+                <TableCell className="hidden max-w-[26rem] truncate text-soft xl:table-cell">{i.message}</TableCell>
                 <TableCell className="hidden text-soft md:table-cell">{i.service || "Not given"}</TableCell>
                 <TableCell>
                   <StatusBadge status={i.status} />
@@ -97,19 +97,23 @@ export default function InquiriesPage({ searchParams }: PageProps<"/admin/inquir
   return (
     <div className="space-y-6 lg:space-y-8">
       <PageHeader title="Inquiries" description="Messages from the contact form. Opening a new one marks it read." />
-      <Suspense fallback={<ToolbarSkeleton filters={1} />}>
-        <ListToolbar
-          searchPlaceholder="Search name, email or message"
-          defaultSort="received"
-          defaultOrder="desc"
-          sorts={[
-            { value: "received", label: "Received" },
-            { value: "name", label: "Name" },
-          ]}
-          filters={[STATUS_FILTER]}
-        />
-      </Suspense>
-      <Suspense fallback={<TableSkeleton columns={4} />}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Suspense fallback={<Skeleton className="h-11 w-80 rounded-xl md:h-10" />}>
+          <Tabs searchParams={searchParams} />
+        </Suspense>
+        <Suspense fallback={<ToolbarSkeleton filters={0} />}>
+          <ListToolbar
+            searchPlaceholder="Search name, email or message"
+            defaultSort="received"
+            defaultOrder="desc"
+            sorts={[
+              { value: "received", label: "Received" },
+              { value: "name", label: "Name" },
+            ]}
+          />
+        </Suspense>
+      </div>
+      <Suspense fallback={<TableSkeleton columns={5} />}>
         <InquiriesTable searchParams={searchParams} />
       </Suspense>
     </div>

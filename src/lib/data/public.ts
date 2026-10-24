@@ -125,8 +125,8 @@ export async function getProjectReels(limit = 9): Promise<ProjectReel[]> {
   cacheTag(TAGS.projects, TAGS.categories);
   const [cats, rows] = await Promise.all([
     categoryMap(),
-    all<RawCard & { gallery: string }>(
-      `SELECT ${CARD_COLUMNS}, gallery FROM projects WHERE ${PUBLISHED} AND featured = 1 ORDER BY ${PROJECT_ORDER} LIMIT ?`,
+    all<RawCard & { gallery: string; video: string | null }>(
+      `SELECT ${CARD_COLUMNS}, gallery, video FROM projects WHERE ${PUBLISHED} AND featured = 1 ORDER BY ${PROJECT_ORDER} LIMIT ?`,
       [limit],
     ),
   ]);
@@ -135,8 +135,23 @@ export async function getProjectReels(limit = 9): Promise<ProjectReel[]> {
     if (!card) return [];
     // The cover is often also the first gallery picture: each screen plays once.
     const frames = [card.cover, ...gallery(r.gallery).slice(0, 4)].filter((m, i, list) => list.findIndex((x) => x.url === m.url) === i);
-    return [{ ...card, frames }];
+    return [{ ...card, frames, video: r.video ?? "" }];
   });
+}
+
+/** Every published project, in display order, optionally inside one category (the work page draws them progressively). */
+export async function getWorkAll(categorySlug: string | null): Promise<{ projects: ProjectCard[]; category: CategoryDTO | null }> {
+  "use cache";
+  cacheLife("content");
+  cacheTag(TAGS.projects, TAGS.categories);
+  const categories = await getCategories();
+  const category = categorySlug ? categories.find((c) => c.slug === categorySlug) ?? null : null;
+  if (categorySlug && !category) return { projects: [], category: null };
+  const cats = new Map(categories.map((c) => [c.id, c]));
+  const rows = category
+    ? await all<RawCard>(`SELECT ${CARD_COLUMNS} FROM projects WHERE ${PUBLISHED} AND category_id = ? ORDER BY ${PROJECT_ORDER}`, [category.id])
+    : await all<RawCard>(`SELECT ${CARD_COLUMNS} FROM projects WHERE ${PUBLISHED} ORDER BY ${PROJECT_ORDER}`);
+  return { projects: rows.map((r) => toCard(r, cats)).filter((c): c is ProjectCard => c !== null), category };
 }
 
 export interface WorkPage extends Paginated<ProjectCard> {
@@ -220,6 +235,7 @@ export async function getProject(slug: string): Promise<ProjectDetail | null> {
       website: links.website ?? "",
     },
     gallery: gallery(raw.gallery),
+    video: raw.video ?? "",
     date: iso(raw.date),
   };
 }
@@ -288,14 +304,15 @@ export async function getTeam(): Promise<TeamMemberDTO[]> {
   "use cache";
   cacheLife("content");
   cacheTag(TAGS.team);
-  const rows = await all<Pick<TeamMemberRow, "id" | "name" | "role" | "photo" | "linkedin">>(
-    "SELECT id, name, role, photo, linkedin FROM team_members WHERE published = 1 ORDER BY sort_order, created_at",
+  const rows = await all<Pick<TeamMemberRow, "id" | "name" | "role" | "photo" | "photo_sketch" | "linkedin">>(
+    "SELECT id, name, role, photo, photo_sketch, linkedin FROM team_members WHERE published = 1 ORDER BY sort_order, created_at",
   );
   return rows.map((r) => ({
     id: r.id,
     name: r.name,
     role: r.role,
     photo: toMedia(json<MediaDoc | null>(r.photo, null)),
+    sketch: toMedia(json<MediaDoc | null>(r.photo_sketch, null)),
     linkedin: r.linkedin ?? "",
   }));
 }
@@ -362,6 +379,15 @@ export async function getPostsPage(page: number): Promise<Paginated<PostCard>> {
   return toPaginated((rows as unknown as RawPost[]).map(toPostCard), total, page, BLOG_PAGE_SIZE);
 }
 
+/** The latest posts other than this one, for the end of a post. */
+export async function getRelatedPosts(slug: string, limit = 3): Promise<PostCard[]> {
+  "use cache";
+  cacheLife("content");
+  cacheTag(TAGS.posts);
+  const rows = await all<RawPost>(`SELECT ${POST_CARD_COLUMNS} FROM posts WHERE ${PUBLISHED} AND slug <> ? ORDER BY published_at DESC, id DESC LIMIT ?`, [slug, limit]);
+  return rows.map(toPostCard);
+}
+
 export async function getPostSlugs(): Promise<string[]> {
   "use cache";
   cacheLife("content");
@@ -374,15 +400,19 @@ export async function getPost(slug: string): Promise<PostDetail | null> {
   "use cache";
   cacheLife("content");
   cacheTag(TAGS.post(slug), TAGS.posts);
-  const r = await first<RawPost>(`SELECT ${POST_CARD_COLUMNS}, content FROM posts WHERE ${PUBLISHED} AND slug = ?`, [slug]);
-  return r ? { ...toPostCard(r), content: r.content ?? "" } : null;
+  const r = await first<RawPost & Pick<PostRow, "website" | "play_store" | "app_store">>(
+    `SELECT ${POST_CARD_COLUMNS}, content, website, play_store, app_store FROM posts WHERE ${PUBLISHED} AND slug = ?`,
+    [slug],
+  );
+  return r ? { ...toPostCard(r), content: r.content ?? "", website: r.website ?? "", playStore: r.play_store ?? "", appStore: r.app_store ?? "" } : null;
 }
 
 export async function getOpenJobs(): Promise<JobDTO[]> {
   "use cache";
   cacheLife("content");
   cacheTag(TAGS.jobs);
-  const rows = await all<JobRow>("SELECT * FROM jobs WHERE open = 1 ORDER BY sort_order");
+  // Newest first by default (a new position takes the lowest sort_order); the admin can move any of them up or down.
+  const rows = await all<JobRow>("SELECT * FROM jobs WHERE open = 1 ORDER BY sort_order ASC, created_at DESC");
   return rows.map((r) => ({
     id: r.id,
     title: r.title,
@@ -395,12 +425,24 @@ export async function getOpenJobs(): Promise<JobDTO[]> {
   }));
 }
 
+/** The text blocks of the Join Our Team page, as the admin wrote them: those above the positions table, then those below. */
+export async function getCareersContent(): Promise<{ top: LegalPageDTO[]; bottom: LegalPageDTO[] }> {
+  "use cache";
+  cacheLife("content");
+  cacheTag(TAGS.pages);
+  const rows = await all<Pick<PageRow, "slug" | "title" | "content" | "section" | "updated_at">>(
+    "SELECT slug, title, content, section, updated_at FROM pages WHERE section IN ('careers-top', 'careers-bottom') ORDER BY created_at ASC, id ASC",
+  );
+  const dto = (r: (typeof rows)[number]): LegalPageDTO => ({ slug: r.slug, title: r.title, content: r.content ?? "", updatedAt: iso(r.updated_at) ?? "" });
+  return { top: rows.filter((r) => r.section === "careers-top").map(dto), bottom: rows.filter((r) => r.section === "careers-bottom").map(dto) };
+}
+
 export async function getLegalPage(slug: string): Promise<LegalPageDTO | null> {
   "use cache";
   cacheLife("content");
   cacheTag(TAGS.page(slug), TAGS.pages);
   const r = await first<Pick<PageRow, "slug" | "title" | "content" | "updated_at">>(
-    "SELECT slug, title, content, updated_at FROM pages WHERE slug = ?",
+    "SELECT slug, title, content, updated_at FROM pages WHERE slug = ? AND section = 'legal'",
     [slug],
   );
   return r ? { slug: r.slug, title: r.title, content: r.content ?? "", updatedAt: iso(r.updated_at) ?? "" } : null;
@@ -410,5 +452,5 @@ export async function getLegalSlugs(): Promise<{ slug: string; title: string }[]
   "use cache";
   cacheLife("content");
   cacheTag(TAGS.pages);
-  return all<{ slug: string; title: string }>("SELECT slug, title FROM pages ORDER BY title");
+  return all<{ slug: string; title: string }>("SELECT slug, title FROM pages WHERE section = 'legal' ORDER BY title");
 }

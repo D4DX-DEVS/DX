@@ -88,6 +88,7 @@ export async function getProjectForEdit(id: string): Promise<ProjectEdit | null>
       links: { playStore: links.playStore ?? "", appStore: links.appStore ?? "", website: links.website ?? "" },
       cover: json<MediaDoc | null>(r.cover, null),
       gallery: json<MediaDoc[]>(r.gallery, []),
+      video: r.video ?? "",
       featured: r.featured === 1,
       status: r.status,
       order: r.sort_order,

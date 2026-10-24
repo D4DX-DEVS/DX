@@ -31,6 +31,8 @@ export type Platform = "android" | "ios" | "web" | "desktop";
 /** A project card with its cover first, then a few gallery screens. */
 export interface ProjectReel extends ProjectCard {
   frames: Media[];
+  /** A looping preview video (a /media/videos path or an https link), or "" to play the screens instead. */
+  video: string;
 }
 
 export interface ProjectDetail extends ProjectCard {
@@ -40,6 +42,8 @@ export interface ProjectDetail extends ProjectCard {
   platforms: Platform[];
   links: { playStore: string; appStore: string; website: string };
   gallery: Media[];
+  /** A looping preview video (a /media/videos path or an https link), or "". */
+  video: string;
   date: string | null;
 }
 
@@ -75,6 +79,8 @@ export interface TeamMemberDTO {
   name: string;
   role: string;
   photo: Media | null;
+  /** The photo as a pencil sketch; the site shows it at rest and the photo itself on hover. */
+  sketch: Media | null;
   linkedin: string;
 }
 
@@ -99,6 +105,10 @@ export interface PostCard {
 
 export interface PostDetail extends PostCard {
   content: string;
+  /** Optional links: "" when not set. */
+  website: string;
+  playStore: string;
+  appStore: string;
 }
 
 export interface JobDTO {

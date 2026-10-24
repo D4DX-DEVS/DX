@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, X } from "lucide-react";
+import { Plus, X } from "@/components/icons";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,15 @@ interface ListFieldProps {
 }
 
 /** A short list of text lines (features, points, tags). Enter adds the typed line. */
-export function ListField({ id, value, onChange, placeholder, max = 30, maxLength = 200, invalid }: ListFieldProps) {
+export function ListField({
+  id,
+  value,
+  onChange,
+  placeholder,
+  max = 30,
+  maxLength = 200,
+  invalid,
+}: ListFieldProps) {
   const [draft, setDraft] = useState("");
 
   function add() {
@@ -36,9 +44,17 @@ export function ListField({ id, value, onChange, placeholder, max = 30, maxLengt
                 value={item}
                 maxLength={maxLength}
                 aria-label={`Item ${i + 1}`}
-                onChange={(e) => onChange(value.map((v, j) => (j === i ? e.target.value : v)))}
+                onChange={(e) =>
+                  onChange(value.map((v, j) => (j === i ? e.target.value : v)))
+                }
               />
-              <Button type="button" variant="ghost" size="icon" onClick={() => onChange(value.filter((_, j) => j !== i))} aria-label={`Remove item ${i + 1}`}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => onChange(value.filter((_, j) => j !== i))}
+                aria-label={`Remove item ${i + 1}`}
+              >
                 <X className="size-4" aria-hidden="true" />
               </Button>
             </li>
@@ -60,7 +76,12 @@ export function ListField({ id, value, onChange, placeholder, max = 30, maxLengt
             }
           }}
         />
-        <Button type="button" variant="outline" onClick={add} disabled={!draft.trim() || value.length >= max}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={add}
+          disabled={!draft.trim() || value.length >= max}
+        >
           <Plus className="size-4" aria-hidden="true" />
           Add
         </Button>

@@ -10,7 +10,13 @@ export function sanitizeRichText(html: string): string {
     allowedAttributes: {
       a: ["href", "title", "target", "rel"],
       img: ["src", "alt", "width", "height"],
+      // The editor's alignment buttons write an inline text-align; nothing else in a style survives.
+      p: ["style"],
+      h2: ["style"],
+      h3: ["style"],
+      h4: ["style"],
     },
+    allowedStyles: { "*": { "text-align": [/^(left|center|right|justify)$/] } },
     allowedSchemes: ["http", "https", "mailto", "tel"],
     allowedSchemesByTag: { img: ["https"] },
     allowProtocolRelative: false,

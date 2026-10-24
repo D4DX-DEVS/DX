@@ -45,8 +45,21 @@ export async function getApplicationPositions(): Promise<{ value: string; label:
   return rows.map((r) => ({ value: r.position, label: r.position }));
 }
 
-export interface ApplicationDetail extends Omit<ApplicationRow, "resume"> {
+/** The longer form's answers, as the submit action stored them (older applications have none). */
+export interface ApplicationExtras {
+  dateOfBirth?: string;
+  address?: { street?: string; line2?: string; city?: string; state?: string; zip?: string; country?: string };
+  education?: { qualification?: string; course?: string; specialization?: string; institution?: string; graduationYear?: string; grade?: string };
+  professional?: { designation?: string; notice?: string; keySkills?: string };
+  skills?: { primary?: string; secondary?: string; frameworks?: string; tools?: string; databases?: string };
+  projects?: { experience?: string; description?: string; otherLinks?: string };
+  relocate?: string;
+}
+
+export interface ApplicationDetail extends Omit<ApplicationRow, "resume" | "certificates" | "details"> {
   resume: ResumeDoc;
+  certificates: ResumeDoc;
+  details: ApplicationExtras;
 }
 
 /** One application. Opening a new one marks it read, since someone has now seen it. */
@@ -54,7 +67,13 @@ export async function getApplication(id: string): Promise<ApplicationDetail | nu
   await requireAdmin();
   const row = await first<ApplicationRow>("SELECT * FROM applications WHERE id = ?", [id]);
   if (!row) return null;
-  const detail: ApplicationDetail = { ...row, resume: json<ResumeDoc>(row.resume, { file: "", name: "", size: 0 }) };
+  const empty: ResumeDoc = { file: "", name: "", size: 0 };
+  const detail: ApplicationDetail = {
+    ...row,
+    resume: json<ResumeDoc>(row.resume, empty),
+    certificates: json<ResumeDoc>(typeof row.certificates === "string" && row.certificates ? row.certificates : null, empty),
+    details: json<ApplicationExtras>(typeof row.details === "string" ? row.details : null, {}),
+  };
   if (row.status === "new") {
     const now = nowIso();
     await run("UPDATE applications SET status = 'read', updated_at = ? WHERE id = ? AND status = 'new'", [now, id]);

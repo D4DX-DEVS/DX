@@ -1,4 +1,4 @@
-import { FileText, Pencil, Plus } from "lucide-react";
+import { FileText, Pencil, Plus } from "@/components/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -13,8 +13,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { deletePage } from "@/lib/actions/admin/pages";
 import { listPages } from "@/lib/data/admin/pages";
 import { shortDate } from "@/lib/format";
+import { PAGE_SECTION_LABEL } from "@/lib/schemas/admin";
 
-export const metadata: Metadata = { title: "Legal pages" };
+export const metadata: Metadata = { title: "Pages" };
 
 type Search = PageProps<"/admin/pages">["searchParams"];
 
@@ -41,18 +42,18 @@ async function PagesTable({ searchParams }: { searchParams: Search }) {
     return filtered ? (
       <EmptyState title="No pages match" description="Try another search or clear the filters." action={{ href: "/admin/pages", label: "Clear filters" }} />
     ) : (
-      <EmptyState icon={FileText} title="No legal pages yet" description="Add a privacy policy or terms page." action={{ href: "/admin/pages/new", label: "New page" }} />
+      <EmptyState icon={FileText} title="No pages yet" description="Add a privacy policy, terms, or text for the Join Our Team page." action={{ href: "/admin/pages/new", label: "New page" }} />
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto rounded-2xl border border-border bg-raised">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-raised shadow-[var(--shadow-card)]">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="md:min-w-56">Page</TableHead>
-              <TableHead className="hidden md:table-cell">Address</TableHead>
+              <TableHead className="hidden md:table-cell">Shows on</TableHead>
               <TableHead className="hidden sm:table-cell">Edited</TableHead>
               <TableHead className="hidden w-24 text-right sm:table-cell">
                 <span className="sr-only">Actions</span>
@@ -67,7 +68,7 @@ async function PagesTable({ searchParams }: { searchParams: Search }) {
                     {p.title}
                   </Link>
                 </TableCell>
-                <TableCell className="hidden text-soft md:table-cell">/legal/{p.slug}</TableCell>
+                <TableCell className="hidden text-soft md:table-cell">{p.section === "legal" ? `/legal/${p.slug}` : PAGE_SECTION_LABEL[p.section as keyof typeof PAGE_SECTION_LABEL] ?? p.section}</TableCell>
                 <TableCell className="hidden text-soft sm:table-cell">{shortDate(p.updated_at)}</TableCell>
                 <TableCell className="hidden text-right sm:table-cell">
                   <div className="flex justify-end gap-1">
@@ -93,8 +94,8 @@ export default function LegalPagesPage({ searchParams }: PageProps<"/admin/pages
   return (
     <div className="space-y-6 lg:space-y-8">
       <PageHeader
-        title="Legal pages"
-        description="Privacy policy, terms and other plain pages under /legal."
+        title="Pages"
+        description="Legal pages under /legal, and the text blocks of the Join Our Team page."
         actions={
           <Button asChild className="bg-brand text-on-brand hover:bg-[var(--brand-strong)]">
             <Link href="/admin/pages/new">

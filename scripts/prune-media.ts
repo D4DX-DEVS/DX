@@ -11,8 +11,9 @@ const apply = process.argv.includes("--apply");
 
 // Every query returns one column named v (a union takes its column name from the first select).
 const MEDIA_SOURCES = [
-  "SELECT cover AS v FROM projects UNION ALL SELECT gallery FROM projects UNION ALL SELECT body FROM projects",
+  "SELECT cover AS v FROM projects UNION ALL SELECT gallery FROM projects UNION ALL SELECT body FROM projects UNION ALL SELECT video FROM projects",
   "SELECT photo AS v FROM team_members",
+  "SELECT photo_sketch AS v FROM team_members",
   "SELECT cover AS v FROM posts UNION ALL SELECT content FROM posts",
   "SELECT content AS v FROM pages",
 ];
@@ -25,7 +26,7 @@ async function referencedMedia(): Promise<Set<string>> {
   const refs = new Set<string>();
   for (const sql of MEDIA_SOURCES) {
     for (const row of await all<{ v: string | null }>(sql)) {
-      for (const m of (row.v ?? "").matchAll(/\/media\/(\d{4}\/\d{2}\/[a-z0-9-]+\.(?:webp|avif|jpe?g|png))/g)) refs.add(`media/${m[1]}`);
+      for (const m of (row.v ?? "").matchAll(/\/media\/((?:videos\/)?\d{4}\/\d{2}\/[a-z0-9-]+\.(?:webp|avif|jpe?g|png|mp4|webm))/g)) refs.add(`media/${m[1]}`);
     }
   }
   return refs;

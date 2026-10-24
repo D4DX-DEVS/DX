@@ -25,13 +25,13 @@ export async function savePost(id: string | null, input: PostInput): Promise<Act
   const excerpt = p.excerpt || excerptFrom(content, 220);
   // A published post always carries a date: today when none was chosen.
   const day = p.publishedAt || (p.status === "published" ? now.slice(0, 10) : "");
-  const values = [p.title, p.slug, excerpt, content, p.cover, p.tags, p.status, day ? new Date(`${day}T00:00:00.000Z`) : null];
+  const values = [p.title, p.slug, excerpt, content, p.cover, p.tags, p.website, p.playStore, p.appStore, p.status, day ? new Date(`${day}T00:00:00.000Z`) : null];
   try {
     if (id) {
       const before = await first<{ slug: string }>("SELECT slug FROM posts WHERE id = ?", [idSchema.parse(id)]);
       if (!before) return { ok: false, message: "This post no longer exists." };
       await run(
-        "UPDATE posts SET title = ?, slug = ?, excerpt = ?, content = ?, cover = ?, tags = ?, status = ?, published_at = ?, updated_at = ? WHERE id = ?",
+        "UPDATE posts SET title = ?, slug = ?, excerpt = ?, content = ?, cover = ?, tags = ?, website = ?, play_store = ?, app_store = ?, status = ?, published_at = ?, updated_at = ? WHERE id = ?",
         [...values, now, id],
       );
       expire(before.slug, p.slug);
@@ -39,8 +39,8 @@ export async function savePost(id: string | null, input: PostInput): Promise<Act
     }
     const newIdValue = newId();
     await run(
-      `INSERT INTO posts (title, slug, excerpt, content, cover, tags, status, published_at, id, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO posts (title, slug, excerpt, content, cover, tags, website, play_store, app_store, status, published_at, id, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [...values, newIdValue, now, now],
     );
     expire(p.slug);

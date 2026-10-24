@@ -2,11 +2,16 @@ import { Suspense } from "react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { requireAdmin } from "@/lib/auth/dal";
+import { getNavBadges } from "@/lib/data/admin/inbox";
 
 /** The session is read inside the boundary, so the shell streams in after the database check. */
 async function Panel({ children }: { children: React.ReactNode }) {
-  const admin = await requireAdmin();
-  return <AdminShell admin={admin}>{children}</AdminShell>;
+  const [admin, unread] = await Promise.all([requireAdmin(), getNavBadges()]);
+  return (
+    <AdminShell admin={admin} badges={{ "/admin/inquiries": unread.inquiries, "/admin/applications": unread.applications }}>
+      {children}
+    </AdminShell>
+  );
 }
 
 function ShellFallback() {

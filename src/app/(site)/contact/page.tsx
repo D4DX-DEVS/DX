@@ -1,4 +1,4 @@
-import { ArrowUpRight, Mail, MapPin, MessageCircle, Phone, type LucideIcon } from "lucide-react";
+import { ArrowUpRight, Mail, MapPin, MessageCircle, Phone, type LucideIcon } from "@/components/icons";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PageHero } from "@/components/site/page-hero";
@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getCategories, getSettings } from "@/lib/data/public";
 import type { SearchParamsRecord } from "@/lib/listing";
 import { ContactForm } from "./_components/contact-form";
+import { TitleFx } from "@/components/motion/title-fx";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -40,7 +41,7 @@ async function Ways() {
         const body = (
           <>
             <span aria-hidden="true" className="grid size-12 shrink-0 place-items-center rounded-xl bg-[var(--brand-tint)] text-brand-ink transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-6">
-              <Icon className="size-5" />
+              <Icon weight="duotone" className="size-5" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm text-soft">{w.label}</span>
@@ -101,7 +102,7 @@ export default function ContactPage({ searchParams }: PageProps<"/contact">) {
       <div className="theme-light">
         <section aria-label="Get in touch" className="frame grid grid-cols-1 gap-y-10 py-[var(--section-gap)] lg:grid-cols-12 lg:gap-x-[var(--gutter)]">
           <div className="lg:col-span-4">
-            <h2 className="text-[length:var(--step-head)] leading-tight font-semibold tracking-[-0.02em]">Reach us directly</h2>
+            <TitleFx as="h2" className="text-[length:var(--step-head)] leading-tight font-semibold tracking-[-0.02em]">Reach us directly</TitleFx>
             <p className="mt-3 max-w-[38ch] text-soft">Prefer to talk? Call or message us, or drop in at the studio during working hours.</p>
             <div className="mt-8">
               <Suspense fallback={<Lines count={4} />}>

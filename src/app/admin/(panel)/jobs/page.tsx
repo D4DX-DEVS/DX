@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, Pencil, Plus } from "lucide-react";
+import { ArrowUpDown, BriefcaseBusiness, Pencil, Plus } from "@/components/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { deleteJob } from "@/lib/actions/admin/jobs";
 import { listJobs } from "@/lib/data/admin/jobs";
 
-export const metadata: Metadata = { title: "Jobs" };
+export const metadata: Metadata = { title: "Positions" };
 
 type Search = PageProps<"/admin/jobs">["searchParams"];
 
@@ -41,16 +41,16 @@ async function JobsTable({ searchParams }: { searchParams: Search }) {
 
   if (result.data.length === 0) {
     return filtered ? (
-      <EmptyState title="No jobs match" description="Try another search or clear the filters." action={{ href: "/admin/jobs", label: "Clear filters" }} />
+      <EmptyState title="No positions match" description="Try another search or clear the filters." action={{ href: "/admin/jobs", label: "Clear filters" }} />
     ) : (
-      <EmptyState icon={BriefcaseBusiness} title="No job openings yet" description="Add an opening to list it on the careers page." action={{ href: "/admin/jobs/new", label: "New job" }} />
+      <EmptyState icon={BriefcaseBusiness} title="No positions yet" description="Add a position to list it in the table on the Join Our Team page." action={{ href: "/admin/jobs/new", label: "New position" }} />
     );
   }
 
   return (
     <div className="space-y-4">
       {/* Key columns first; level, location and position step aside on small screens. */}
-      <div className="overflow-x-auto rounded-2xl border border-border bg-raised">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-raised shadow-[var(--shadow-card)]">
         <Table>
           <TableHeader>
             <TableRow>
@@ -94,7 +94,7 @@ async function JobsTable({ searchParams }: { searchParams: Search }) {
           </TableBody>
         </Table>
       </div>
-      <DataPagination page={result.page} pageSize={result.pageSize} total={result.total} totalPages={result.totalPages} noun="jobs" />
+      <DataPagination page={result.page} pageSize={result.pageSize} total={result.total} totalPages={result.totalPages} noun="positions" />
     </div>
   );
 }
@@ -103,15 +103,26 @@ export default function JobsPage({ searchParams }: PageProps<"/admin/jobs">) {
   return (
     <div className="space-y-6 lg:space-y-8">
       <PageHeader
-        title="Jobs"
-        description="Openings on the careers page. Closed jobs stay here but are hidden from the site."
+        title="Positions"
+        description="The open positions table on the Join Our Team page. Newest first; move any of them up or down. Closed positions stay here but are hidden from the site."
         actions={
-          <Button asChild className="bg-brand text-on-brand hover:bg-[var(--brand-strong)]">
-            <Link href="/admin/jobs/new">
-              <Plus className="size-4" aria-hidden="true" />
-              New job
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline">
+              <Link href="/admin/pages">Page text</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/admin/jobs/order">
+                <ArrowUpDown className="size-4" aria-hidden="true" />
+                Reorder
+              </Link>
+            </Button>
+            <Button asChild className="bg-brand text-on-brand hover:bg-[var(--brand-strong)]">
+              <Link href="/admin/jobs/new">
+                <Plus className="size-4" aria-hidden="true" />
+                New position
+              </Link>
+            </Button>
+          </div>
         }
       />
       <Suspense fallback={<ToolbarSkeleton filters={1} />}>

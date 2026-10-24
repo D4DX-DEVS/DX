@@ -36,6 +36,7 @@ export async function saveProject(id: string | null, input: ProjectInput): Promi
     p.links,
     p.cover,
     p.gallery,
+    p.video,
     p.featured,
     p.status,
     p.order,
@@ -49,7 +50,7 @@ export async function saveProject(id: string | null, input: ProjectInput): Promi
       if (!before) return { ok: false, message: "This project no longer exists." };
       await run(
         `UPDATE projects SET title = ?, slug = ?, category_id = ?, client = ?, date = ?, summary = ?, body = ?, features = ?, platforms = ?,
-                links = ?, cover = ?, gallery = ?, featured = ?, status = ?, sort_order = ?, updated_at = ? WHERE id = ?`,
+                links = ?, cover = ?, gallery = ?, video = ?, featured = ?, status = ?, sort_order = ?, updated_at = ? WHERE id = ?`,
         [...values, now, id],
       );
       expire(before.slug, p.slug);
@@ -57,9 +58,9 @@ export async function saveProject(id: string | null, input: ProjectInput): Promi
     }
     const newIdValue = newId();
     await run(
-      `INSERT INTO projects (title, slug, category_id, client, date, summary, body, features, platforms, links, cover, gallery,
+      `INSERT INTO projects (title, slug, category_id, client, date, summary, body, features, platforms, links, cover, gallery, video,
                              featured, status, sort_order, id, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [...values, newIdValue, now, now],
     );
     expire(p.slug);

@@ -26,6 +26,7 @@ async function NewProject() {
         links: { playStore: "", appStore: "", website: "" },
         cover: null,
         gallery: [],
+        video: "",
         featured: false,
         status: "draft",
         order,

@@ -14,7 +14,10 @@ export const inquiryListQuery = listQuerySchema({
   filters: { status: z.enum(INBOX_OPTIONS).optional().catch(undefined) },
 });
 
-export type InquiryListRow = Pick<InquiryRow, "id" | "name" | "email" | "service" | "status" | "created_at">;
+export type InquiryListRow = Pick<InquiryRow, "id" | "name" | "email" | "service" | "status" | "created_at"> & {
+  /** The first part of the message, for the listing. */
+  message: string;
+};
 
 export async function listInquiries(params: SearchParamsRecord): Promise<Paginated<InquiryListRow>> {
   await requireAdmin();
@@ -22,7 +25,7 @@ export async function listInquiries(params: SearchParamsRecord): Promise<Paginat
   return listPage<InquiryListRow>(
     {
       from: "inquiries",
-      select: "id, name, email, service, status, created_at",
+      select: "id, name, email, service, status, created_at, substr(message, 1, 200) AS message",
       search: ["name", "email", "message"],
       sorts: { received: "created_at", name: "name COLLATE NOCASE" },
       where: q.status ? [{ sql: "status = ?", params: [q.status] }] : [],

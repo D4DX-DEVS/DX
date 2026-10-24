@@ -1,4 +1,4 @@
-import { Eye, UserRound } from "lucide-react";
+import { Eye, UserRound } from "@/components/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -9,16 +9,24 @@ import { PageHeader } from "@/components/admin/page-header";
 import { TableSkeleton, ToolbarSkeleton } from "@/components/admin/skeletons";
 import { EmptyState } from "@/components/admin/states";
 import { StatusBadge } from "@/components/admin/status-badge";
+import { StatusTabs } from "@/components/admin/status-tabs";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { deleteApplication } from "@/lib/actions/admin/applications";
 import { getApplicationPositions, listApplications } from "@/lib/data/admin/applications";
+import { getStatusCounts } from "@/lib/data/admin/inbox";
 import { dateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Applications" };
 
 type Search = PageProps<"/admin/applications">["searchParams"];
+
+async function Tabs({ searchParams }: { searchParams: Search }) {
+  const [params, counts] = await Promise.all([searchParams, getStatusCounts("applications")]);
+  return <StatusTabs counts={counts} params={params} basePath="/admin/applications" />;
+}
 
 async function Toolbar() {
   const positions = await getApplicationPositions();
@@ -33,15 +41,6 @@ async function Toolbar() {
         { value: "position", label: "Position" },
       ]}
       filters={[
-        {
-          name: "status",
-          label: "Statuses",
-          options: [
-            { value: "new", label: "New" },
-            { value: "read", label: "Read" },
-            { value: "archived", label: "Archived" },
-          ],
-        },
         { name: "position", label: "Positions", options: positions },
       ]}
     />
@@ -64,7 +63,7 @@ async function ApplicationsTable({ searchParams }: { searchParams: Search }) {
   return (
     <div className="space-y-4">
       {/* Applicant and status first; position, experience and date step aside on small screens. */}
-      <div className="overflow-x-auto rounded-2xl border border-border bg-raised">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-raised shadow-[var(--shadow-card)]">
         <Table>
           <TableHeader>
             <TableRow>
@@ -122,9 +121,14 @@ export default function ApplicationsPage({ searchParams }: PageProps<"/admin/app
   return (
     <div className="space-y-6 lg:space-y-8">
       <PageHeader title="Applications" description="Job applications from the careers page, with their résumés. Opening a new one marks it read." />
-      <Suspense fallback={<ToolbarSkeleton filters={2} />}>
-        <Toolbar />
-      </Suspense>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Suspense fallback={<Skeleton className="h-11 w-80 rounded-xl md:h-10" />}>
+          <Tabs searchParams={searchParams} />
+        </Suspense>
+        <Suspense fallback={<ToolbarSkeleton filters={1} />}>
+          <Toolbar />
+        </Suspense>
+      </div>
       <Suspense fallback={<TableSkeleton columns={5} />}>
         <ApplicationsTable searchParams={searchParams} />
       </Suspense>

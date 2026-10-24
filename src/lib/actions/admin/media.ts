@@ -2,8 +2,8 @@
 
 import { requireAdmin } from "@/lib/auth/dal";
 import { logger } from "@/lib/logger";
-import { MediaError, processImage } from "@/lib/media";
-import { MAX_IMAGE_BYTES } from "@/lib/media-utils";
+import { MediaError, processImage, storeVideo } from "@/lib/media";
+import { MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "@/lib/media-utils";
 import type { MediaDoc } from "@/lib/models";
 
 export type UploadResult = { ok: true; media: MediaDoc } | { ok: false; message: string };
@@ -22,5 +22,22 @@ export async function uploadImage(form: FormData): Promise<UploadResult> {
     if (error instanceof MediaError) return { ok: false, message: error.message };
     logger.error("image upload failed", error);
     return { ok: false, message: "Could not upload the image. Please try again." };
+  }
+}
+
+export type VideoUploadResult = { ok: true; url: string } | { ok: false; message: string };
+
+/** Stores an uploaded mp4 or webm in R2. The caller saves the returned URL with its record. */
+export async function uploadVideo(form: FormData): Promise<VideoUploadResult> {
+  await requireAdmin();
+  const file = form.get("file");
+  if (!(file instanceof File) || file.size === 0) return { ok: false, message: "Choose a video to upload." };
+  if (file.size > MAX_VIDEO_BYTES) return { ok: false, message: "Videos must be 25 MB or smaller." };
+  try {
+    return { ok: true, url: await storeVideo(Buffer.from(await file.arrayBuffer())) };
+  } catch (error: unknown) {
+    if (error instanceof MediaError) return { ok: false, message: error.message };
+    logger.error("video upload failed", error);
+    return { ok: false, message: "Could not upload the video. Please try again." };
   }
 }

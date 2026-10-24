@@ -1,5 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { MARK } from "@/components/brand/paths";
+import { TEAM_CELL, TEAM_ROW } from "@/components/site/team-grid";
 import { cn } from "@/lib/utils";
 
 /** Loading states for the public pages. Each one is the final layout with shimmer in place of data. */
@@ -73,44 +74,41 @@ export function GridSkeleton({ count = 8 }: { count?: number }) {
   );
 }
 
-/** Shaped like Proof: four number cards and the tools ticker. */
-export function ProofSkeleton() {
+export function WorkSectionSkeleton() {
   return (
     <section
-      className="pt-[var(--section-gap)]"
+      className="theme-dark dark-band py-[clamp(2.5rem,5vw,4rem)]"
       aria-busy="true"
-      aria-label="Loading"
+      aria-label="Loading work"
     >
-      <div className="frame grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="rounded-2xl bg-raised p-5 sm:p-6">
-            <Skeleton className="h-12 w-20 rounded-xl" />
-            <Skeleton className="shimmer-line mt-6 h-4 w-3/4" />
-          </div>
-        ))}
-      </div>
-      <div className="frame mt-10 flex gap-8 overflow-hidden sm:mt-12">
-        {Array.from({ length: 6 }, (_, i) => (
-          <Skeleton key={i} className="shimmer-line h-7 w-28 shrink-0" />
-        ))}
+      <div className="frame">
+        <Skeleton className="shimmer-line h-9 w-56" />
+        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+          {Array.from({ length: 6 }, (_, i) => (
+            <Skeleton key={i} className="aspect-[4/3.3] rounded-[2rem]" />
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
-export function WorkSectionSkeleton() {
+/** Shaped like the home page's team band: a heading over two rows of six portraits. */
+export function TeamSkeleton() {
   return (
     <section
-      className="frame pt-[var(--section-gap)]"
+      className="theme-dark dark-band py-[clamp(2.5rem,5vw,4rem)]"
       aria-busy="true"
-      aria-label="Loading work"
+      aria-label="Loading team"
     >
-      <Skeleton className="shimmer-line h-9 w-56" />
-      <div className="mt-4 mb-10 flex gap-6">
-        <Skeleton className="shimmer-line h-5 w-20" />
-        <Skeleton className="shimmer-line h-5 w-24" />
+      <div className="frame">
+        <Skeleton className="shimmer-line h-9 w-72" />
+        <div className={cn("mt-10", TEAM_ROW)}>
+          {Array.from({ length: 12 }, (_, i) => (
+            <Skeleton key={i} className={cn("aspect-[4/5] rounded-[2.25rem]", TEAM_CELL)} />
+          ))}
+        </div>
       </div>
-      <GridSkeleton count={4} />
     </section>
   );
 }
@@ -200,21 +198,6 @@ export function StudioSkeleton() {
             className="aspect-[4/5] w-36 shrink-0 rounded-2xl sm:w-44"
           />
         ))}
-      </div>
-    </section>
-  );
-}
-
-export function CtaSkeleton() {
-  return (
-    <section
-      className="frame mt-[var(--section-gap)] min-h-[60svh] bg-brand"
-      aria-busy="true"
-      aria-label="Loading"
-    >
-      <div className="pt-[clamp(4rem,8vw,7rem)]">
-        <div className="h-[clamp(2.25rem,4.4vw,4rem)] w-[min(30rem,80%)] rounded-xl bg-white/10" />
-        <div className="mt-3 h-[clamp(2.25rem,4.4vw,4rem)] w-[min(22rem,60%)] rounded-xl bg-white/10" />
       </div>
     </section>
   );

@@ -1,7 +1,7 @@
-import { ArrowUpRight, MapPin } from "lucide-react";
+import { ArrowUpRight, MapPin } from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
-import mavoor from "@/assets/mavoor-road.jpg";
+import mavoor from "@/assets/mavoor-road.webp";
 import { ShimmerImage } from "@/components/media/shimmer-image";
 import { Marquee } from "@/components/motion/marquee";
 import { Reveal } from "@/components/motion/reveal";
@@ -13,7 +13,7 @@ const PORTRAITS_WIDE = 12;
 
 /** Portraits overlapping in a row, with how many more there are. */
 function Faces({ team }: { team: TeamMemberDTO[] }) {
-  const withPhoto = team.filter((m): m is TeamMemberDTO & { photo: Media } => m.photo !== null);
+  const withPhoto = team.map((m) => ({ id: m.id, photo: m.sketch ?? m.photo })).filter((m): m is { id: string; photo: Media } => m.photo !== null);
   const shown = withPhoto.slice(0, STACK);
   const more = team.length - shown.length;
   return (
@@ -39,7 +39,7 @@ function Portrait({ member }: { member: TeamMemberDTO }) {
   return (
     <figure className="w-36 shrink-0 sm:w-44">
       {member.photo ? (
-        <ShimmerImage media={member.photo} alt="" fill sizes="176px" className="aspect-[4/5] rounded-2xl bg-raised-2" />
+        <ShimmerImage media={member.sketch ?? member.photo} alt="" fill sizes="176px" className="aspect-[4/5] rounded-2xl bg-raised-2" />
       ) : (
         <div className="aspect-[4/5] rounded-2xl bg-raised-2" />
       )}

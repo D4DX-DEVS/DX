@@ -13,7 +13,7 @@ import {
   UserRound,
   Users,
   type LucideIcon,
-} from "lucide-react";
+} from "@/components/icons";
 
 export interface AdminNavItem {
   href: string;
@@ -29,7 +29,10 @@ export interface AdminNavGroup {
 }
 
 export const ADMIN_NAV: AdminNavGroup[] = [
-  { label: "Overview", items: [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard }] },
+  {
+    label: "",
+    items: [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard }],
+  },
   {
     label: "Content",
     items: [
@@ -37,10 +40,14 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       { href: "/admin/categories", label: "Categories", icon: Layers },
       { href: "/admin/services", label: "Services", icon: Sparkles },
       { href: "/admin/team", label: "Team", icon: Users },
-      { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquareQuote },
+      {
+        href: "/admin/testimonials",
+        label: "Testimonials",
+        icon: MessageSquareQuote,
+      },
       { href: "/admin/posts", label: "Blog posts", icon: Newspaper },
-      { href: "/admin/jobs", label: "Jobs", icon: BriefcaseBusiness },
-      { href: "/admin/pages", label: "Legal pages", icon: FileText },
+      { href: "/admin/jobs", label: "Positions", icon: BriefcaseBusiness },
+      { href: "/admin/pages", label: "Pages", icon: FileText },
     ],
   },
   {
@@ -54,7 +61,12 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     label: "Settings",
     items: [
       { href: "/admin/settings", label: "Site settings", icon: Settings },
-      { href: "/admin/users", label: "Admin users", icon: ShieldCheck, ownerOnly: true },
+      {
+        href: "/admin/users",
+        label: "Admin users",
+        icon: ShieldCheck,
+        ownerOnly: true,
+      },
     ],
   },
 ];
@@ -62,6 +74,10 @@ export const ADMIN_NAV: AdminNavGroup[] = [
 /** The nav item a path belongs to: the longest matching href wins, /admin only matches itself. */
 export function activeHref(pathname: string): string | null {
   const all = ADMIN_NAV.flatMap((g) => g.items.map((i) => i.href));
-  const matches = all.filter((href) => (href === "/admin" ? pathname === "/admin" : pathname === href || pathname.startsWith(`${href}/`)));
+  const matches = all.filter((href) =>
+    href === "/admin"
+      ? pathname === "/admin"
+      : pathname === href || pathname.startsWith(`${href}/`),
+  );
   return matches.sort((a, b) => b.length - a.length)[0] ?? null;
 }

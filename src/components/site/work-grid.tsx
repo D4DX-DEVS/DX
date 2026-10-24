@@ -1,4 +1,4 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "@/components/icons";
 import Link from "next/link";
 import { ShimmerImage } from "@/components/media/shimmer-image";
 import { Reveal } from "@/components/motion/reveal";

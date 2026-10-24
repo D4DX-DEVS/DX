@@ -1,4 +1,4 @@
-import { FolderKanban, Pencil, Plus, Star } from "lucide-react";
+import { FolderKanban, Pencil, Plus, Star } from "@/components/icons";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -57,7 +57,7 @@ async function ProjectsTable({ searchParams }: { searchParams: Search }) {
   return (
     <div className="space-y-4">
       {/* Key columns first; client, position and dates step aside on small screens. */}
-      <div className="overflow-x-auto rounded-2xl border border-border bg-raised">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-raised shadow-[var(--shadow-card)]">
         <Table>
           <TableHeader>
             <TableRow>

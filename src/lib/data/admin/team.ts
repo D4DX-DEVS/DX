@@ -1,7 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/dal";
-import { first, json } from "@/lib/db";
+import { all, first, json } from "@/lib/db";
 import { listQuerySchema, parseSearchParams, type Paginated, type SearchParamsRecord } from "@/lib/listing";
 import type { MediaDoc, TeamMemberRow } from "@/lib/models";
 import type { TeamMemberInput } from "@/lib/schemas/admin";
@@ -38,6 +38,14 @@ export async function listTeam(params: SearchParamsRecord): Promise<Paginated<Te
       tiebreak: "id",
     },
     q,
+  );
+}
+
+/** Everyone, hidden or not, in the order the site shows them (the reorder screen has no paging). */
+export async function listTeamInOrder(): Promise<TeamListRow[]> {
+  await requireAdmin();
+  return all<TeamListRow>(
+    "SELECT id, name, role, published, sort_order, updated_at, json_extract(photo, '$.url') AS photo_url FROM team_members ORDER BY sort_order, created_at",
   );
 }
 

@@ -15,9 +15,9 @@ const HEAD_SCRIPT = [
   "var d=document.documentElement;d.classList.add('js');",
   "try{var m=function(q){return window.matchMedia(q).matches};",
   "if(window.WebGL2RenderingContext&&!m('(prefers-reduced-motion: reduce)')&&(m('(min-width: 768px) and (min-height: 520px)')||m('(min-height: 700px)'))",
-  "&&!(navigator.connection&&navigator.connection.saveData))d.classList.add('immersive')}catch(e){}",
+  "&&!(navigator.connection&&navigator.connection.saveData)){d.classList.add('immersive');window.__d4dxImmersive=1}}catch(e){}",
   // If the app's scripts never arrive, show everything plainly instead of leaving parts hidden.
-  "setTimeout(function(){if(!d.classList.contains('hydrated')){d.classList.remove('immersive');d.classList.add('no-hydrate')}},10000);",
+  "setTimeout(function(){if(!d.classList.contains('hydrated')){d.classList.remove('immersive');d.classList.add('no-hydrate')}},20000);",
 ].join("");
 
 export const metadata: Metadata = {

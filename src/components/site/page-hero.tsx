@@ -1,5 +1,6 @@
 import { MarkIcon } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
+import { TitleFx } from "@/components/motion/title-fx";
 
 interface PageHeroProps {
   eyebrow: string;
@@ -24,7 +25,7 @@ export function PageHero({ eyebrow, title, lead, children, className }: PageHero
       <MarkIcon className="pointer-events-none absolute -right-[4%] -bottom-[30%] w-[min(55vw,520px)] text-brand/[0.12]" />
       <div className="frame relative pt-[clamp(3rem,7vw,6rem)] pb-[clamp(3rem,6vw,5rem)]">
         <p className="eyebrow">{eyebrow}</p>
-        <h1 className="mt-4 max-w-[20ch] text-[length:var(--step-xl)] leading-[1.02] font-medium tracking-[-0.035em]">{title}</h1>
+        <TitleFx as="h1" className="mt-4 max-w-[20ch] text-[length:var(--step-xl)] leading-[1.02] font-medium tracking-[-0.035em]">{title}</TitleFx>
         {lead ? <p className="mt-6 max-w-[52ch] text-[length:var(--step-lead)] leading-[1.5] text-soft">{lead}</p> : null}
         {children}
       </div>

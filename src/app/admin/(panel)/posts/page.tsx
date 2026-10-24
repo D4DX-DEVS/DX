@@ -1,4 +1,4 @@
-import { Newspaper, Pencil, Plus } from "lucide-react";
+import { Newspaper, Pencil, Plus } from "@/components/icons";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -53,7 +53,7 @@ async function PostsTable({ searchParams }: { searchParams: Search }) {
   return (
     <div className="space-y-4">
       {/* Key columns first; tags and dates step aside on small screens. */}
-      <div className="overflow-x-auto rounded-2xl border border-border bg-raised">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-raised shadow-[var(--shadow-card)]">
         <Table>
           <TableHeader>
             <TableRow>

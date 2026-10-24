@@ -1,4 +1,4 @@
-import { Mail, MessageCircle, Phone } from "lucide-react";
+import { Mail, MessageCircle, Phone } from "@/components/icons";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -54,12 +54,12 @@ async function InquiryDetail({ params }: { params: PageProps<"/admin/inquiries/[
         }
       />
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <section className="rounded-2xl border border-border bg-raised p-4 sm:p-6">
+        <section className="rounded-2xl border border-border bg-raised shadow-[var(--shadow-card)] p-4 sm:p-6">
           <h2 className="text-base font-semibold">Message</h2>
           <p className="mt-4 text-[0.9375rem] leading-relaxed break-words whitespace-pre-line text-ink">{inquiry.message}</p>
         </section>
         <aside className="space-y-6">
-          <section className="space-y-4 rounded-2xl border border-border bg-raised p-4 sm:p-6">
+          <section className="space-y-4 rounded-2xl border border-border bg-raised shadow-[var(--shadow-card)] p-4 sm:p-6">
             <h2 className="text-base font-semibold">Details</h2>
             <dl className="space-y-4">
               <Detail label="Email">
@@ -81,7 +81,7 @@ async function InquiryDetail({ params }: { params: PageProps<"/admin/inquiries/[
               <Detail label="Received">{dateTime(inquiry.created_at)}</Detail>
             </dl>
           </section>
-          <section className="space-y-3 rounded-2xl border border-border bg-raised p-4 sm:p-6">
+          <section className="space-y-3 rounded-2xl border border-border bg-raised shadow-[var(--shadow-card)] p-4 sm:p-6">
             <label htmlFor="inquiry-status" className="block text-base font-semibold">
               Status
             </label>

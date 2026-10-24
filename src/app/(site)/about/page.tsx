@@ -2,12 +2,10 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Reveal } from "@/components/motion/reveal";
 import { PageHero } from "@/components/site/page-hero";
-import { CtaSkeleton, GridSkeleton, ProofSkeleton, VoicesSkeleton } from "@/components/site/skeletons";
+import { GridSkeleton, VoicesSkeleton } from "@/components/site/skeletons";
 import { TeamGrid } from "@/components/site/team-grid";
 import { getTeam } from "@/lib/data/public";
 import { About } from "../_home/about";
-import { Cta } from "../_home/cta";
-import { Proof } from "../_home/proof";
 import { SectionHead } from "../_home/section-head";
 import { Voices } from "../_home/voices";
 
@@ -29,17 +27,18 @@ export default function AboutPage() {
         title="A studio that stays after launch"
         lead="We design and build apps, websites, ERP and SaaS from Mavoor Road in Calicut, and keep them running for as long as they are in use."
       />
-      <div className="theme-light">
+      <div className="theme-dark">
         <About />
-        <Suspense fallback={<ProofSkeleton />}>
-          <Proof />
-        </Suspense>
         <section id="team" aria-labelledby="team-title" className="frame scroll-mt-24 pt-[var(--section-gap)]">
           <Reveal>
             <SectionHead
               id="team-title"
               eyebrow="Our team"
-              title="The people behind D4DX"
+              title={
+                <>
+                  The people behind <span className="text-shine">D4DX</span>
+                </>
+              }
               lead="Designers, developers, testers and the people who keep the projects moving."
             />
           </Reveal>
@@ -51,9 +50,6 @@ export default function AboutPage() {
         </section>
         <Suspense fallback={<VoicesSkeleton />}>
           <Voices />
-        </Suspense>
-        <Suspense fallback={<CtaSkeleton />}>
-          <Cta />
         </Suspense>
       </div>
     </>

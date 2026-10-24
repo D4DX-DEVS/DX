@@ -69,7 +69,7 @@ export function TeamMemberForm({ id, initial }: TeamMemberFormProps) {
             </Field>
           </FormSection>
 
-          <FormSection title="Photo" description="A head-and-shoulders portrait works best.">
+          <FormSection title="Photo" description="A head-and-shoulders portrait with a plain background works best. When you save, the site makes a pencil-sketch version of it automatically; visitors see the sketch, and the colour photo when they hover.">
             <Field id="photo" label="Portrait" optional error={errors.photo?.message}>
               <Controller
                 control={control}
