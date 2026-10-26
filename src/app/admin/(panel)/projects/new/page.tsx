@@ -27,6 +27,7 @@ async function NewProject() {
         cover: null,
         gallery: [],
         video: "",
+        icon: null,
         featured: false,
         status: "draft",
         order,

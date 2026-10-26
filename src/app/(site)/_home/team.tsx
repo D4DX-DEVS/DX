@@ -21,13 +21,23 @@ export async function Team() {
   if (!team.length) return null;
 
   return (
-    <section aria-labelledby="team-title" className="theme-dark dark-band py-[clamp(2.5rem,5vw,4rem)]">
+    <section
+      aria-labelledby="team-title"
+      className="theme-dark dark-band py-[clamp(2.5rem,5vw,4rem)]"
+    >
       <BandLights />
       <NeuralField className="absolute inset-0 -z-10 size-full opacity-80" />
       <div aria-hidden="true" className="tech-grid absolute inset-0 -z-10" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 hidden md:block">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 hidden md:block"
+      >
         {TECH.map((c) => (
-          <span key={c.label} className={`tech-chip absolute ${c.className}`} style={{ animationDelay: c.delay }}>
+          <span
+            key={c.label}
+            className={`tech-chip absolute ${c.className}`}
+            style={{ animationDelay: c.delay }}
+          >
             {c.label}
           </span>
         ))}

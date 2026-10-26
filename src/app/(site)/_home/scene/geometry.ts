@@ -8,7 +8,11 @@ export function shapesFor(d: string): THREE.Shape[] {
 }
 
 /** A flat face with UVs that "cover"-fit an image of the given aspect into the shapes' bounds. */
-export function coverFace(shapes: THREE.Shape | THREE.Shape[], aspect: number, segments = 24): THREE.ShapeGeometry {
+export function coverFace(
+  shapes: THREE.Shape | THREE.Shape[],
+  aspect: number,
+  segments = 24,
+): THREE.ShapeGeometry {
   const geo = new THREE.ShapeGeometry(shapes, segments);
   geo.computeBoundingBox();
   const box = geo.boundingBox ?? new THREE.Box3();
@@ -26,7 +30,11 @@ export function coverFace(shapes: THREE.Shape | THREE.Shape[], aspect: number, s
 }
 
 /** A rectangle with rounded corners, centred on the origin. */
-export function roundedRect(width: number, height: number, radius: number): THREE.Shape {
+export function roundedRect(
+  width: number,
+  height: number,
+  radius: number,
+): THREE.Shape {
   const x = -width / 2;
   const y = -height / 2;
   const r = Math.min(radius, width / 2, height / 2);

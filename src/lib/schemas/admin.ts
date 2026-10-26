@@ -50,6 +50,7 @@ export const projectSchema = z
   cover: mediaSchema.nullable(),
   gallery: z.array(mediaSchema).max(30),
   video: videoUrl,
+  icon: mediaSchema.nullable(),
   featured: z.boolean(),
   status: z.enum(STATUS_OPTIONS),
   order,

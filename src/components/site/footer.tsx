@@ -1,4 +1,13 @@
-import { ArrowRight, FacebookLogo, InstagramLogo, LinkedinLogo, Mail, MapPin, Phone, WhatsappLogo } from "@/components/icons";
+import {
+  ArrowRight,
+  FacebookLogo,
+  InstagramLogo,
+  LinkedinLogo,
+  Mail,
+  MapPin,
+  Phone,
+  WhatsappLogo,
+} from "@/components/icons";
 import Link from "next/link";
 import { cacheLife } from "next/cache";
 import { Logo } from "@/components/brand/logo";
@@ -12,7 +21,11 @@ function telHref(phone: string): string {
 }
 
 function Heading({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-[0.75rem] font-semibold tracking-[0.3em] text-white/85 uppercase">{children}</h2>;
+  return (
+    <h2 className="text-[0.75rem] font-semibold tracking-[0.3em] text-white/85 uppercase">
+      {children}
+    </h2>
+  );
 }
 
 /** A link row: the label, an arrow that leans in on hover, a hairline under it. */
@@ -24,7 +37,10 @@ function Row({ href, children }: { href: string; children: React.ReactNode }) {
         className="footer-row group flex min-h-11 items-center justify-between gap-4 border-b border-white/10 text-[0.9375rem] text-white/90 transition-colors hover:border-brand-ink/60 hover:text-white"
       >
         {children}
-        <ArrowRight aria-hidden="true" className="size-4 shrink-0 text-brand-ink transition-transform duration-300 group-hover:translate-x-1.5" />
+        <ArrowRight
+          aria-hidden="true"
+          className="size-4 shrink-0 text-brand-ink transition-transform duration-300 group-hover:translate-x-1.5"
+        />
       </Link>
     </li>
   );
@@ -40,48 +56,80 @@ const badge =
 export async function Footer() {
   "use cache";
   cacheLife("content");
-  const [settings, legal, services] = await Promise.all([getSettings(), getLegalSlugs(), getServices()]);
+  const [settings, legal, services] = await Promise.all([
+    getSettings(),
+    getLegalSlugs(),
+    getServices(),
+  ]);
   const whatsapp = settings.whatsapp.replace(/\D/g, "");
   const message = "Hello D4DX, I'd like to talk about a new project.";
   const socials = [
     { label: "Facebook", href: settings.socials.facebook, icon: FacebookLogo },
-    { label: "Instagram", href: settings.socials.instagram, icon: InstagramLogo },
+    {
+      label: "Instagram",
+      href: settings.socials.instagram,
+      icon: InstagramLogo,
+    },
     { label: "LinkedIn", href: settings.socials.linkedin, icon: LinkedinLogo },
-    { label: "WhatsApp", href: whatsapp ? `https://wa.me/${whatsapp}` : "", icon: WhatsappLogo },
+    {
+      label: "WhatsApp",
+      href: whatsapp ? `https://wa.me/${whatsapp}` : "",
+      icon: WhatsappLogo,
+    },
   ].filter((s) => s.href);
 
   return (
     <footer className="theme-dark footer-surface relative isolate overflow-hidden pb-36 lg:pb-0">
       <FooterBackdrop />
       <div className="frame relative">
-        <section aria-labelledby="cta-title" className="hidden grid-cols-1 gap-y-8 pt-20 pb-12 md:grid md:grid-cols-12 md:pt-28 md:pb-14">
-          <div className="md:col-span-8 lg:col-span-7">
-            <p className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-semibold tracking-[0.14em] text-white/85 uppercase ring-1 ring-white/15 backdrop-blur-sm">
-              <span aria-hidden="true" className="ai-dot size-1.5 rounded-full bg-[#8fb0ff]" />
-              Let&apos;s build together
-            </p>
-            <TitleFx as="h2" id="cta-title" className="mt-5 text-[clamp(2rem,4vw,3.5rem)] leading-[1.04] font-semibold tracking-[-0.03em] text-white">
-              Have a <span className="text-shine">project</span> in mind?
-            </TitleFx>
-            <p className="mt-4 max-w-[44ch] text-[length:var(--step-lead)] leading-snug text-white/80">
-              Tell us who will use it and what it must do on day one. We will call you back to talk it through.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-              <Link href="/contact" className="btn bg-white text-brand hover:bg-white/90">
-                Get started
-                <ArrowRight className="size-4" aria-hidden="true" />
-              </Link>
-              {whatsapp ? (
-                <a
-                  href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="link inline-flex min-h-11 items-center font-medium text-white"
-                >
-                  Message on WhatsApp
-                </a>
-              ) : null}
-            </div>
+        <section
+          aria-labelledby="cta-title"
+          className="hidden flex-col items-center pt-20 pb-14 text-center md:flex md:pt-28 md:pb-16"
+        >
+          <p className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-semibold tracking-[0.14em] text-white/85 uppercase ring-1 ring-white/15 backdrop-blur-sm">
+            <span
+              aria-hidden="true"
+              className="ai-dot size-1.5 rounded-full bg-[#8fb0ff]"
+            />
+            Let&apos;s build together
+          </p>
+          <TitleFx
+            as="h2"
+            id="cta-title"
+            className="mt-5 justify-center text-[clamp(2rem,4vw,3.5rem)] leading-[1.04] font-semibold tracking-[-0.03em] text-white"
+          >
+            Have a <span className="text-shine">project</span> in mind?
+          </TitleFx>
+          <p className="mt-4 max-w-[44ch] text-[length:var(--step-lead)] leading-snug text-white/80">
+            Tell us who will use it and what it must do on day one. We will call
+            you back to talk it through.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/contact"
+              className="btn cta-primary group bg-white text-brand"
+            >
+              Get started
+              <ArrowRight
+                className="size-4 transition-transform duration-300 group-hover:translate-x-1"
+                aria-hidden="true"
+              />
+            </Link>
+            {whatsapp ? (
+              <a
+                href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn cta-ghost group text-white"
+              >
+                <WhatsappLogo
+                  weight="fill"
+                  className="size-[1.125rem] transition-transform duration-300 group-hover:scale-110"
+                  aria-hidden="true"
+                />
+                Message on WhatsApp
+              </a>
+            ) : null}
           </div>
         </section>
 
@@ -89,11 +137,16 @@ export async function Footer() {
 
         <div className="hidden grid-cols-1 gap-x-10 gap-y-12 py-14 md:grid md:grid-cols-12 md:py-16">
           <div className="md:col-span-12 lg:col-span-4">
-            <Link href="/" aria-label="D4DX Innovations, home" className="inline-flex min-h-11 items-center">
+            <Link
+              href="/"
+              aria-label="D4DX Innovations, home"
+              className="inline-flex min-h-11 items-center"
+            >
               <Logo className="h-12 w-auto" sizes="180px" />
             </Link>
             <p className="mt-5 max-w-[34ch] text-[1.0625rem] leading-relaxed text-white/75">
-              Building digital products that create value, connect people and make an impact.
+              Building digital products that create value, connect people and
+              make an impact.
             </p>
             {socials.length ? (
               <ul aria-label="Follow us" className="mt-7 flex flex-wrap gap-3">
@@ -106,7 +159,11 @@ export async function Footer() {
                       aria-label={label}
                       className="footer-social grid size-12 place-items-center rounded-full border border-brand-ink/45 bg-brand/10 text-white transition-[transform,background-color,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-brand-ink hover:bg-brand hover:shadow-[0_12px_28px_-8px_rgb(45_80_210/0.95)]"
                     >
-                      <Icon weight="fill" aria-hidden="true" className="size-5" />
+                      <Icon
+                        weight="fill"
+                        aria-hidden="true"
+                        className="size-5"
+                      />
                     </a>
                   </li>
                 ))}
@@ -114,7 +171,10 @@ export async function Footer() {
             ) : null}
           </div>
 
-          <nav aria-label="Footer" className="grid grid-cols-1 gap-x-10 gap-y-12 sm:grid-cols-2 md:col-span-7 lg:col-span-5 lg:border-x lg:border-white/10 lg:px-10">
+          <nav
+            aria-label="Footer"
+            className="grid grid-cols-1 gap-x-10 gap-y-12 sm:grid-cols-2 md:col-span-7 lg:col-span-5 lg:border-x lg:border-white/10 lg:px-10"
+          >
             <div>
               <Heading>Quick links</Heading>
               <ul className="mt-5 flex flex-col">
@@ -146,10 +206,19 @@ export async function Footer() {
               {settings.addressLines.length ? (
                 <div className="group flex items-center gap-4">
                   <span className={badge}>
-                    <MapPin weight="fill" aria-hidden="true" className="size-5" />
+                    <MapPin
+                      weight="fill"
+                      aria-hidden="true"
+                      className="size-5"
+                    />
                   </span>
                   {settings.mapUrl ? (
-                    <a href={settings.mapUrl} target="_blank" rel="noopener noreferrer" className="link">
+                    <a
+                      href={settings.mapUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link"
+                    >
                       {settings.addressLines.join(", ")}
                     </a>
                   ) : (
@@ -158,7 +227,10 @@ export async function Footer() {
                 </div>
               ) : null}
               {settings.email ? (
-                <a href={`mailto:${settings.email}`} className="group flex items-center gap-4">
+                <a
+                  href={`mailto:${settings.email}`}
+                  className="group flex items-center gap-4"
+                >
                   <span className={badge}>
                     <Mail weight="fill" aria-hidden="true" className="size-5" />
                   </span>
@@ -166,9 +238,16 @@ export async function Footer() {
                 </a>
               ) : null}
               {settings.phone ? (
-                <a href={telHref(settings.phone)} className="group flex items-center gap-4 num">
+                <a
+                  href={telHref(settings.phone)}
+                  className="group flex items-center gap-4 num"
+                >
                   <span className={badge}>
-                    <Phone weight="fill" aria-hidden="true" className="size-5" />
+                    <Phone
+                      weight="fill"
+                      aria-hidden="true"
+                      className="size-5"
+                    />
                   </span>
                   <span className="link">{settings.phone}</span>
                 </a>
@@ -179,14 +258,23 @@ export async function Footer() {
 
         <div className="footer-rule hidden h-px md:block" aria-hidden="true" />
         <div className="hidden flex-col gap-4 py-7 text-[0.8125rem] leading-relaxed text-white/70 md:flex lg:flex-row lg:items-center lg:justify-between">
-          <p>© {new Date().getFullYear()} D4DX Innovations LLP. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} D4DX Innovations LLP. All rights
+            reserved.
+          </p>
           <ul className="flex flex-wrap items-center gap-y-1">
             {legal.map((p) => (
               <li key={p.slug} className="flex items-center">
-                <Link href={`/legal/${p.slug}`} className="link inline-flex min-h-11 items-center px-4 first:pl-0 lg:first:pl-4">
+                <Link
+                  href={`/legal/${p.slug}`}
+                  className="link inline-flex min-h-11 items-center px-4 first:pl-0 lg:first:pl-4"
+                >
                   {p.title}
                 </Link>
-                <span aria-hidden="true" className="h-4 w-px bg-brand-ink/50 last:hidden" />
+                <span
+                  aria-hidden="true"
+                  className="h-4 w-px bg-brand-ink/50 last:hidden"
+                />
               </li>
             ))}
           </ul>
@@ -205,9 +293,18 @@ export async function Footer() {
             <address className="flex flex-col items-center gap-2.5 text-[0.8125rem] leading-snug not-italic text-white/85">
               {settings.addressLines.length ? (
                 <p className="flex max-w-[30ch] items-start justify-center gap-2">
-                  <MapPin weight="fill" aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-brand-ink" />
+                  <MapPin
+                    weight="fill"
+                    aria-hidden="true"
+                    className="mt-0.5 size-4 shrink-0 text-brand-ink"
+                  />
                   {settings.mapUrl ? (
-                    <a href={settings.mapUrl} target="_blank" rel="noopener noreferrer" className="link">
+                    <a
+                      href={settings.mapUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link"
+                    >
                       {settings.addressLines.join(", ")}
                     </a>
                   ) : (
@@ -216,14 +313,28 @@ export async function Footer() {
                 </p>
               ) : null}
               {settings.email ? (
-                <a href={`mailto:${settings.email}`} className="inline-flex items-center gap-2">
-                  <Mail weight="fill" aria-hidden="true" className="size-4 text-brand-ink" />
+                <a
+                  href={`mailto:${settings.email}`}
+                  className="inline-flex items-center gap-2"
+                >
+                  <Mail
+                    weight="fill"
+                    aria-hidden="true"
+                    className="size-4 text-brand-ink"
+                  />
                   <span className="link">{settings.email}</span>
                 </a>
               ) : null}
               {settings.phone ? (
-                <a href={telHref(settings.phone)} className="inline-flex items-center gap-2 num">
-                  <Phone weight="fill" aria-hidden="true" className="size-4 text-brand-ink" />
+                <a
+                  href={telHref(settings.phone)}
+                  className="inline-flex items-center gap-2 num"
+                >
+                  <Phone
+                    weight="fill"
+                    aria-hidden="true"
+                    className="size-4 text-brand-ink"
+                  />
                   <span className="link">{settings.phone}</span>
                 </a>
               ) : null}
@@ -239,7 +350,11 @@ export async function Footer() {
                       aria-label={label}
                       className="footer-social grid size-11 place-items-center rounded-full border border-brand-ink/45 bg-brand/10 text-white transition-[transform,background-color] duration-300 active:scale-90"
                     >
-                      <Icon weight="fill" aria-hidden="true" className="size-5" />
+                      <Icon
+                        weight="fill"
+                        aria-hidden="true"
+                        className="size-5"
+                      />
                     </a>
                   </li>
                 ))}
@@ -248,15 +363,21 @@ export async function Footer() {
           </div>
           <div aria-hidden="true" className="footer-rule h-px" />
           <p className="px-2 py-5 text-center text-[0.6875rem] leading-[1.9] text-white/60">
-            © {new Date().getFullYear()} D4DX Innovations LLP. All rights reserved.{" "}
+            © {new Date().getFullYear()} D4DX Innovations LLP. All rights
+            reserved.{" "}
             {legal.map((p, i) => (
               <span key={p.slug}>
                 {i > 0 ? " " : null}
                 <span className="whitespace-nowrap">
-                  <Link href={`/legal/${p.slug}`} className="link inline-block py-1">
+                  <Link
+                    href={`/legal/${p.slug}`}
+                    className="link inline-block py-1"
+                  >
                     {p.title}
                   </Link>
-                  {i < legal.length - 1 ? <span aria-hidden="true"> ·</span> : null}
+                  {i < legal.length - 1 ? (
+                    <span aria-hidden="true"> ·</span>
+                  ) : null}
                 </span>
               </span>
             ))}

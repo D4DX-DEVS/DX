@@ -43,6 +43,8 @@ export interface ProjectRow extends Timestamps {
   gallery: Json;
   /** A short looping preview (an uploaded /media/videos path or an https link), or empty. */
   video: string;
+  /** The app's icon or the site's logo (a MediaDoc), shown over its picture on the home page. */
+  icon: Json | null;
   featured: Bool;
   status: PublishStatus;
   sort_order: number;

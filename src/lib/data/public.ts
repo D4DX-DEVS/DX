@@ -1,22 +1,27 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { all, batch, first, json } from "@/lib/db";
-import type { JobRow, MediaDoc, PageRow, PostRow, ProjectLinks, ProjectRow, ServiceRow, SettingsData, TeamMemberRow, TestimonialRow } from "@/lib/models";
+import type {
+  MediaDoc,
+  ProjectLinks,
+  ProjectRow,
+  ServiceRow,
+  SettingsData,
+  TeamMemberRow,
+  TestimonialRow,
+} from "@/lib/models";
 import { toPaginated, type Paginated } from "@/lib/listing";
 import type {
   CategoryDTO,
   HeroWindow,
-  JobDTO,
-  LegalPageDTO,
   Media,
-  PostCard,
-  PostDetail,
   ProjectCard,
   ProjectDetail,
   ProjectIndexEntry,
   ProjectReel,
   ServiceDTO,
   SiteSettings,
+  HeroVideoConfig,
   TeamMemberDTO,
   TestimonialDTO,
   Platform,
@@ -25,10 +30,9 @@ import { iso, toMedia, toMediaList, yearOf } from "./mappers";
 import { TAGS } from "./tags";
 
 export const WORK_PAGE_SIZE = 12;
-export const BLOG_PAGE_SIZE = 6;
 
 const PUBLISHED = "status = 'published'";
-const CARD_COLUMNS = "id, title, slug, client, date, category_id, cover";
+const CARD_COLUMNS = "id, title, slug, client, date, category_id, cover, icon";
 // Nulls sort last on DESC in SQLite, matching the old Mongo order for undated projects.
 const PROJECT_ORDER = "sort_order ASC, date DESC, id ASC";
 
@@ -48,7 +52,9 @@ export async function getSettings(): Promise<SiteSettings> {
   "use cache";
   cacheLife("content");
   cacheTag(TAGS.settings);
-  const row = await first<{ data: string }>("SELECT data FROM settings WHERE key = 'site'");
+  const row = await first<{ data: string }>(
+    "SELECT data FROM settings WHERE key = 'site'",
+  );
   if (!row) return EMPTY_SETTINGS;
   const doc = json<SettingsData>(row.data, {});
   return {
@@ -68,22 +74,74 @@ export async function getSettings(): Promise<SiteSettings> {
   };
 }
 
+/** The recorded banner video, when one has been published (npm run hero:video); null means the live 3D banner. */
+export async function getHeroVideo(): Promise<HeroVideoConfig | null> {
+  "use cache";
+  cacheLife("content");
+  cacheTag(TAGS.settings);
+  const row = await first<{ data: string }>(
+    "SELECT data FROM settings WHERE key = 'hero'",
+  );
+  if (!row) return null;
+  const doc = json<
+    Partial<Omit<HeroVideoConfig, "poster" | "mobile">> & {
+      poster?: MediaDoc;
+      mobile?: { video?: string; poster?: MediaDoc } | null;
+    }
+  >(row.data, {});
+  const poster = toMedia(doc.poster ?? null);
+  if (!doc.video || !poster || !doc.cues || !doc.projects) return null;
+  const mobilePoster = toMedia(doc.mobile?.poster ?? null);
+  const mobile =
+    doc.mobile?.video && mobilePoster
+      ? { video: doc.mobile.video, poster: mobilePoster }
+      : null;
+  return {
+    signature: (doc as { signature?: string }).signature ?? "",
+    video: doc.video,
+    poster,
+    mobile,
+    duration: doc.duration ?? 0,
+    introEnd: doc.introEnd ?? 2,
+    cues: doc.cues,
+    projects: doc.projects,
+  };
+}
+
 /** Categories in admin order, each with its count of published projects. */
 export async function getCategories(): Promise<CategoryDTO[]> {
   "use cache";
   cacheLife("content");
   cacheTag(TAGS.categories, TAGS.projects);
-  const rows = await all<{ id: string; name: string; slug: string; description: string; n: number }>(
+  const rows = await all<{
+    id: string;
+    name: string;
+    slug: string;
+    description: string;
+    n: number;
+  }>(
     `SELECT c.id, c.name, c.slug, c.description, COUNT(p.id) AS n
        FROM categories c LEFT JOIN projects p ON p.category_id = c.id AND p.${PUBLISHED}
       GROUP BY c.id ORDER BY c.sort_order, c.name`,
   );
-  return rows.map((c) => ({ id: c.id, name: c.name, slug: c.slug, description: c.description ?? "", count: c.n }));
+  return rows.map((c) => ({
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+    description: c.description ?? "",
+    count: c.n,
+  }));
 }
 
-type RawCard = Pick<ProjectRow, "id" | "title" | "slug" | "client" | "date" | "category_id" | "cover">;
+type RawCard = Pick<
+  ProjectRow,
+  "id" | "title" | "slug" | "client" | "date" | "category_id" | "cover" | "icon"
+>;
 
-function toCard(raw: RawCard, categories: Map<string, CategoryDTO>): ProjectCard | null {
+function toCard(
+  raw: RawCard,
+  categories: Map<string, CategoryDTO>,
+): ProjectCard | null {
   const cover = toMedia(json<MediaDoc | null>(raw.cover, null));
   if (!cover) return null;
   const category = categories.get(raw.category_id);
@@ -93,8 +151,11 @@ function toCard(raw: RawCard, categories: Map<string, CategoryDTO>): ProjectCard
     slug: raw.slug,
     client: raw.client ?? "",
     year: yearOf(raw.date),
-    category: category ? { name: category.name, slug: category.slug } : { name: "Work", slug: "" },
+    category: category
+      ? { name: category.name, slug: category.slug }
+      : { name: "Work", slug: "" },
     cover,
+    icon: toMedia(json<MediaDoc | null>(raw.icon, null)),
   };
 }
 
@@ -113,9 +174,14 @@ export async function getFeaturedProjects(limit = 12): Promise<ProjectCard[]> {
   cacheTag(TAGS.projects, TAGS.categories);
   const [cats, rows] = await Promise.all([
     categoryMap(),
-    all<RawCard>(`SELECT ${CARD_COLUMNS} FROM projects WHERE ${PUBLISHED} AND featured = 1 ORDER BY ${PROJECT_ORDER} LIMIT ?`, [limit]),
+    all<RawCard>(
+      `SELECT ${CARD_COLUMNS} FROM projects WHERE ${PUBLISHED} AND featured = 1 ORDER BY ${PROJECT_ORDER} LIMIT ?`,
+      [limit],
+    ),
   ]);
-  return rows.map((r) => toCard(r, cats)).filter((c): c is ProjectCard => c !== null);
+  return rows
+    .map((r) => toCard(r, cats))
+    .filter((c): c is ProjectCard => c !== null);
 }
 
 /** Featured projects with a few screens each, played as a reel on the home page. */
@@ -134,24 +200,40 @@ export async function getProjectReels(limit = 9): Promise<ProjectReel[]> {
     const card = toCard(r, cats);
     if (!card) return [];
     // The cover is often also the first gallery picture: each screen plays once.
-    const frames = [card.cover, ...gallery(r.gallery).slice(0, 4)].filter((m, i, list) => list.findIndex((x) => x.url === m.url) === i);
+    const frames = [card.cover, ...gallery(r.gallery).slice(0, 4)].filter(
+      (m, i, list) => list.findIndex((x) => x.url === m.url) === i,
+    );
     return [{ ...card, frames, video: r.video ?? "" }];
   });
 }
 
 /** Every published project, in display order, optionally inside one category (the work page draws them progressively). */
-export async function getWorkAll(categorySlug: string | null): Promise<{ projects: ProjectCard[]; category: CategoryDTO | null }> {
+export async function getWorkAll(
+  categorySlug: string | null,
+): Promise<{ projects: ProjectCard[]; category: CategoryDTO | null }> {
   "use cache";
   cacheLife("content");
   cacheTag(TAGS.projects, TAGS.categories);
   const categories = await getCategories();
-  const category = categorySlug ? categories.find((c) => c.slug === categorySlug) ?? null : null;
+  const category = categorySlug
+    ? (categories.find((c) => c.slug === categorySlug) ?? null)
+    : null;
   if (categorySlug && !category) return { projects: [], category: null };
   const cats = new Map(categories.map((c) => [c.id, c]));
   const rows = category
-    ? await all<RawCard>(`SELECT ${CARD_COLUMNS} FROM projects WHERE ${PUBLISHED} AND category_id = ? ORDER BY ${PROJECT_ORDER}`, [category.id])
-    : await all<RawCard>(`SELECT ${CARD_COLUMNS} FROM projects WHERE ${PUBLISHED} ORDER BY ${PROJECT_ORDER}`);
-  return { projects: rows.map((r) => toCard(r, cats)).filter((c): c is ProjectCard => c !== null), category };
+    ? await all<RawCard>(
+        `SELECT ${CARD_COLUMNS} FROM projects WHERE ${PUBLISHED} AND category_id = ? ORDER BY ${PROJECT_ORDER}`,
+        [category.id],
+      )
+    : await all<RawCard>(
+        `SELECT ${CARD_COLUMNS} FROM projects WHERE ${PUBLISHED} ORDER BY ${PROJECT_ORDER}`,
+      );
+  return {
+    projects: rows
+      .map((r) => toCard(r, cats))
+      .filter((c): c is ProjectCard => c !== null),
+    category,
+  };
 }
 
 export interface WorkPage extends Paginated<ProjectCard> {
@@ -159,13 +241,19 @@ export interface WorkPage extends Paginated<ProjectCard> {
 }
 
 /** One page of the work index, optionally inside one category. Server-side paginated. */
-export async function getWorkPage(categorySlug: string | null, page: number): Promise<WorkPage> {
+export async function getWorkPage(
+  categorySlug: string | null,
+  page: number,
+): Promise<WorkPage> {
   "use cache";
   cacheLife("content");
   cacheTag(TAGS.projects, TAGS.categories);
   const categories = await getCategories();
-  const category = categorySlug ? categories.find((c) => c.slug === categorySlug) ?? null : null;
-  if (categorySlug && !category) return { ...toPaginated([], 0, 1, WORK_PAGE_SIZE), category: null };
+  const category = categorySlug
+    ? (categories.find((c) => c.slug === categorySlug) ?? null)
+    : null;
+  if (categorySlug && !category)
+    return { ...toPaginated([], 0, 1, WORK_PAGE_SIZE), category: null };
 
   const where = category ? `${PUBLISHED} AND category_id = ?` : PUBLISHED;
   const params = category ? [category.id] : [];
@@ -177,7 +265,9 @@ export async function getWorkPage(categorySlug: string | null, page: number): Pr
     { sql: `SELECT COUNT(*) AS n FROM projects WHERE ${where}`, params },
   ]);
   const cats = new Map(categories.map((c) => [c.id, c]));
-  const data = (rows as unknown as RawCard[]).map((r) => toCard(r, cats)).filter((c): c is ProjectCard => c !== null);
+  const data = (rows as unknown as RawCard[])
+    .map((r) => toCard(r, cats))
+    .filter((c): c is ProjectCard => c !== null);
   const total = Number((count[0] as { n?: number } | undefined)?.n ?? 0);
   return { ...toPaginated(data, total, page, WORK_PAGE_SIZE), category };
 }
@@ -187,7 +277,12 @@ export async function getProjectIndex(): Promise<ProjectIndexEntry[]> {
   "use cache";
   cacheLife("content");
   cacheTag(TAGS.projects);
-  const rows = await all<Pick<ProjectRow, "slug" | "title" | "cover" | "gallery" | "links" | "platforms" | "date">>(
+  const rows = await all<
+    Pick<
+      ProjectRow,
+      "slug" | "title" | "cover" | "gallery" | "links" | "platforms" | "date"
+    >
+  >(
     `SELECT slug, title, cover, gallery, links, platforms, date FROM projects WHERE ${PUBLISHED} ORDER BY ${PROJECT_ORDER}`,
   );
   return rows.flatMap((r) => {
@@ -217,7 +312,10 @@ export async function getProject(slug: string): Promise<ProjectDetail | null> {
   cacheTag(TAGS.project(slug), TAGS.projects);
   const [cats, raw] = await Promise.all([
     categoryMap(),
-    first<ProjectRow>(`SELECT * FROM projects WHERE ${PUBLISHED} AND slug = ?`, [slug]),
+    first<ProjectRow>(
+      `SELECT * FROM projects WHERE ${PUBLISHED} AND slug = ?`,
+      [slug],
+    ),
   ]);
   if (!raw) return null;
   const card = toCard(raw, cats);
@@ -259,14 +357,25 @@ export async function getHeroWindows(): Promise<HeroWindow[]> {
     if (!image) continue;
     const key = r.category_id;
     const cat = byId.get(key);
-    const slide: Slide = { title: r.title, slug: r.slug, category: cat?.name ?? "Work", categorySlug: cat?.slug ?? "", image };
+    const slide: Slide = {
+      title: r.title,
+      slug: r.slug,
+      category: cat?.name ?? "Work",
+      categorySlug: cat?.slug ?? "",
+      image,
+    };
     pools.set(key, [...(pools.get(key) ?? []), slide]);
   }
-  const ordered = categories.map((c) => pools.get(c.id) ?? []).filter((p) => p.length > 0);
+  const ordered = categories
+    .map((c) => pools.get(c.id) ?? [])
+    .filter((p) => p.length > 0);
   const everything = ordered.flat();
   const pick = (pool: Slide[] | undefined, offset: number): Slide[] => {
     const source = pool && pool.length > 0 ? pool : everything;
-    const rotated = [...source.slice(offset % Math.max(source.length, 1)), ...source.slice(0, offset % Math.max(source.length, 1))];
+    const rotated = [
+      ...source.slice(offset % Math.max(source.length, 1)),
+      ...source.slice(0, offset % Math.max(source.length, 1)),
+    ];
     return rotated.slice(0, 4);
   };
   // The tall window takes the largest pool (phone screens), the two others the next pools.
@@ -283,7 +392,18 @@ export async function getServices(): Promise<ServiceDTO[]> {
   cacheLife("content");
   cacheTag(TAGS.services, TAGS.projects);
   const [rows, index] = await Promise.all([
-    all<Pick<ServiceRow, "id" | "title" | "slug" | "summary" | "proof" | "points" | "proof_project_slug">>(
+    all<
+      Pick<
+        ServiceRow,
+        | "id"
+        | "title"
+        | "slug"
+        | "summary"
+        | "proof"
+        | "points"
+        | "proof_project_slug"
+      >
+    >(
       "SELECT id, title, slug, summary, proof, points, proof_project_slug FROM services WHERE published = 1 ORDER BY sort_order",
     ),
     getProjectIndex(),
@@ -304,7 +424,12 @@ export async function getTeam(): Promise<TeamMemberDTO[]> {
   "use cache";
   cacheLife("content");
   cacheTag(TAGS.team);
-  const rows = await all<Pick<TeamMemberRow, "id" | "name" | "role" | "photo" | "photo_sketch" | "linkedin">>(
+  const rows = await all<
+    Pick<
+      TeamMemberRow,
+      "id" | "name" | "role" | "photo" | "photo_sketch" | "linkedin"
+    >
+  >(
     "SELECT id, name, role, photo, photo_sketch, linkedin FROM team_members WHERE published = 1 ORDER BY sort_order, created_at",
   );
   return rows.map((r) => ({
@@ -321,7 +446,12 @@ export async function getTestimonials(): Promise<TestimonialDTO[]> {
   "use cache";
   cacheLife("content");
   cacheTag(TAGS.testimonials);
-  const rows = await all<Pick<TestimonialRow, "id" | "quote" | "name" | "role" | "context" | "project_slug">>(
+  const rows = await all<
+    Pick<
+      TestimonialRow,
+      "id" | "quote" | "name" | "role" | "context" | "project_slug"
+    >
+  >(
     "SELECT id, quote, name, role, context, project_slug FROM testimonials WHERE published = 1 ORDER BY sort_order LIMIT 6",
   );
   return rows.map((r) => ({
@@ -335,7 +465,9 @@ export async function getTestimonials(): Promise<TestimonialDTO[]> {
 }
 
 /** Distinct clients across published work (the studio itself excluded), newest first. */
-export async function getClients(): Promise<{ client: string; project: string; slug: string }[]> {
+export async function getClients(): Promise<
+  { client: string; project: string; slug: string }[]
+> {
   "use cache";
   cacheLife("content");
   cacheTag(TAGS.projects);
@@ -348,109 +480,4 @@ export async function getClients(): Promise<{ client: string; project: string; s
     .map((r) => ({ client: r.client, project: r.title, slug: r.slug }));
 }
 
-const POST_CARD_COLUMNS = "id, title, slug, excerpt, cover, tags, published_at";
-
-type RawPost = Pick<PostRow, "id" | "title" | "slug" | "excerpt" | "cover" | "tags" | "published_at"> & { content?: string };
-
-function toPostCard(r: RawPost): PostCard {
-  return {
-    id: r.id,
-    title: r.title,
-    slug: r.slug,
-    excerpt: r.excerpt ?? "",
-    cover: toMedia(json<MediaDoc | null>(r.cover, null)),
-    tags: json<string[]>(r.tags, []),
-    publishedAt: iso(r.published_at),
-  };
-}
-
-export async function getPostsPage(page: number): Promise<Paginated<PostCard>> {
-  "use cache";
-  cacheLife("content");
-  cacheTag(TAGS.posts);
-  const [rows, count] = await batch([
-    {
-      sql: `SELECT ${POST_CARD_COLUMNS} FROM posts WHERE ${PUBLISHED} ORDER BY published_at DESC, id DESC LIMIT ? OFFSET ?`,
-      params: [BLOG_PAGE_SIZE, (page - 1) * BLOG_PAGE_SIZE],
-    },
-    { sql: `SELECT COUNT(*) AS n FROM posts WHERE ${PUBLISHED}` },
-  ]);
-  const total = Number((count[0] as { n?: number } | undefined)?.n ?? 0);
-  return toPaginated((rows as unknown as RawPost[]).map(toPostCard), total, page, BLOG_PAGE_SIZE);
-}
-
-/** The latest posts other than this one, for the end of a post. */
-export async function getRelatedPosts(slug: string, limit = 3): Promise<PostCard[]> {
-  "use cache";
-  cacheLife("content");
-  cacheTag(TAGS.posts);
-  const rows = await all<RawPost>(`SELECT ${POST_CARD_COLUMNS} FROM posts WHERE ${PUBLISHED} AND slug <> ? ORDER BY published_at DESC, id DESC LIMIT ?`, [slug, limit]);
-  return rows.map(toPostCard);
-}
-
-export async function getPostSlugs(): Promise<string[]> {
-  "use cache";
-  cacheLife("content");
-  cacheTag(TAGS.posts);
-  const rows = await all<{ slug: string }>(`SELECT slug FROM posts WHERE ${PUBLISHED} ORDER BY published_at DESC`);
-  return rows.map((r) => r.slug);
-}
-
-export async function getPost(slug: string): Promise<PostDetail | null> {
-  "use cache";
-  cacheLife("content");
-  cacheTag(TAGS.post(slug), TAGS.posts);
-  const r = await first<RawPost & Pick<PostRow, "website" | "play_store" | "app_store">>(
-    `SELECT ${POST_CARD_COLUMNS}, content, website, play_store, app_store FROM posts WHERE ${PUBLISHED} AND slug = ?`,
-    [slug],
-  );
-  return r ? { ...toPostCard(r), content: r.content ?? "", website: r.website ?? "", playStore: r.play_store ?? "", appStore: r.app_store ?? "" } : null;
-}
-
-export async function getOpenJobs(): Promise<JobDTO[]> {
-  "use cache";
-  cacheLife("content");
-  cacheTag(TAGS.jobs);
-  // Newest first by default (a new position takes the lowest sort_order); the admin can move any of them up or down.
-  const rows = await all<JobRow>("SELECT * FROM jobs WHERE open = 1 ORDER BY sort_order ASC, created_at DESC");
-  return rows.map((r) => ({
-    id: r.id,
-    title: r.title,
-    slug: r.slug,
-    level: r.level ?? "",
-    experience: r.experience ?? "",
-    location: r.location ?? "",
-    summary: r.summary ?? "",
-    requirements: json<string[]>(r.requirements, []),
-  }));
-}
-
-/** The text blocks of the Join Our Team page, as the admin wrote them: those above the positions table, then those below. */
-export async function getCareersContent(): Promise<{ top: LegalPageDTO[]; bottom: LegalPageDTO[] }> {
-  "use cache";
-  cacheLife("content");
-  cacheTag(TAGS.pages);
-  const rows = await all<Pick<PageRow, "slug" | "title" | "content" | "section" | "updated_at">>(
-    "SELECT slug, title, content, section, updated_at FROM pages WHERE section IN ('careers-top', 'careers-bottom') ORDER BY created_at ASC, id ASC",
-  );
-  const dto = (r: (typeof rows)[number]): LegalPageDTO => ({ slug: r.slug, title: r.title, content: r.content ?? "", updatedAt: iso(r.updated_at) ?? "" });
-  return { top: rows.filter((r) => r.section === "careers-top").map(dto), bottom: rows.filter((r) => r.section === "careers-bottom").map(dto) };
-}
-
-export async function getLegalPage(slug: string): Promise<LegalPageDTO | null> {
-  "use cache";
-  cacheLife("content");
-  cacheTag(TAGS.page(slug), TAGS.pages);
-  const r = await first<Pick<PageRow, "slug" | "title" | "content" | "updated_at">>(
-    "SELECT slug, title, content, updated_at FROM pages WHERE slug = ? AND section = 'legal'",
-    [slug],
-  );
-  return r ? { slug: r.slug, title: r.title, content: r.content ?? "", updatedAt: iso(r.updated_at) ?? "" } : null;
-}
-
-export async function getLegalSlugs(): Promise<{ slug: string; title: string }[]> {
-  "use cache";
-  cacheLife("content");
-  cacheTag(TAGS.pages);
-  return all<{ slug: string; title: string }>("SELECT slug, title FROM pages WHERE section = 'legal' ORDER BY title");
-}
+export * from "./public-pages";

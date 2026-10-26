@@ -89,6 +89,7 @@ export async function getProjectForEdit(id: string): Promise<ProjectEdit | null>
       cover: json<MediaDoc | null>(r.cover, null),
       gallery: json<MediaDoc[]>(r.gallery, []),
       video: r.video ?? "",
+      icon: json<MediaDoc | null>(r.icon, null),
       featured: r.featured === 1,
       status: r.status,
       order: r.sort_order,

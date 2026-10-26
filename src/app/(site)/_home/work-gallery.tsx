@@ -4,7 +4,7 @@ import { ArrowUpRight } from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { ProjectReel } from "@/lib/types";
+import type { Media, ProjectReel } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const SHOWN = 6;
@@ -35,11 +35,16 @@ const LIGHTS: [string, string][] = [
  */
 function hashOf(text: string): number {
   let h = 2166136261;
-  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
+  for (let i = 0; i < text.length; i++)
+    h = Math.imul(h ^ text.charCodeAt(i), 16777619);
   return h >>> 0;
 }
 
-function lightFor(id: string, index: number, seed: number): React.CSSProperties {
+function lightFor(
+  id: string,
+  index: number,
+  seed: number,
+): React.CSSProperties {
   const h = hashOf(id);
   const [c1, c2] = LIGHTS[(seed + index * 3) % LIGHTS.length]!;
   return {
@@ -61,25 +66,101 @@ const prefersReduced = () => window.matchMedia(REDUCED).matches;
 const onServer = () => false;
 
 /**
+ * The animations a reel can play, one per project (see .work-reel in globals.css). A project's place in the
+ * list picks its animation, stepping by 3 through 7 styles so neighbouring cards never match, and a project
+ * added later simply takes the next one.
+ */
+const REEL_STYLES = [
+  "push",
+  "slide",
+  "rise",
+  "zoom",
+  "flip",
+  "drift",
+  "tilt",
+] as const;
+
+/**
+ * One screen of a reel. A landscape picture (a designed cover, a website) fills the card. A phone screen is
+ * set like a device over a blurred, colour-matched copy of itself, so portrait screenshots never get cropped
+ * into a landscape card.
+ */
+function ReelFrame({ media, on }: { media: Media; on: boolean }) {
+  const landscape = media.width / media.height >= 1.15;
+  return (
+    <span
+      data-on={on}
+      className="work-frame absolute inset-0 block overflow-hidden"
+    >
+      {landscape ? (
+        <Image
+          src={media.url}
+          alt=""
+          fill
+          sizes="(min-width: 1024px) 31vw, 48vw"
+          quality={80}
+          className="work-fg object-cover"
+        />
+      ) : (
+        <>
+          <Image
+            src={media.url}
+            alt=""
+            fill
+            sizes="64px"
+            quality={40}
+            className="scale-125 object-cover opacity-80 blur-2xl"
+          />
+          <span aria-hidden="true" className="absolute inset-0 bg-black/25" />
+          <span className="work-fg absolute inset-y-[7%] left-1/2 block aspect-[9/19.5] -translate-x-1/2">
+            <Image
+              src={media.url}
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 18vw, 30vw"
+              quality={80}
+              className="rounded-[1.1rem] object-cover shadow-[0_18px_40px_-10px_rgb(0_0_0/0.7)] ring-[3px] ring-black/80"
+            />
+          </span>
+        </>
+      )}
+    </span>
+  );
+}
+
+/**
  * One project: its video plays muted on a loop behind the title, or, with no video, its screens
  * play in turn like a short reel (faster while the pointer is on it). Either runs only while the
  * card is on screen, and screens load as the reel reaches them.
  */
-function WorkCard({ project, index, seed }: { project: ProjectReel; index: number; seed: number }) {
+function WorkCard({
+  project,
+  index,
+  styleIndex,
+  seed,
+}: {
+  project: ProjectReel;
+  index: number;
+  /** The project's place in the whole list: it fixes which animation its reel plays. */
+  styleIndex: number;
+  seed: number;
+}) {
   const root = useRef<HTMLAnchorElement>(null);
-  const clip = useRef<HTMLVideoElement>(null);
   const at = useRef(0);
   const [visible, setVisible] = useState(false);
   const [entered, setEntered] = useState(false);
   const [hover, setHover] = useState(false);
   const [frame, setFrame] = useState(0);
   const [seen, setSeen] = useState(1);
-  const [clipReady, setClipReady] = useState(false);
-  const reduced = useSyncExternalStore(onReducedChange, prefersReduced, onServer);
+  const reduced = useSyncExternalStore(
+    onReducedChange,
+    prefersReduced,
+    onServer,
+  );
   const frames = project.frames;
   const count = frames.length;
-  const hasVideo = project.video !== "";
-  const playing = visible && !reduced && count > 1 && !hasVideo;
+  const playing = visible && !reduced && count > 1;
+  const style = REEL_STYLES[(styleIndex * 3) % REEL_STYLES.length]!;
 
   useEffect(() => {
     const el = root.current;
@@ -100,22 +181,16 @@ function WorkCard({ project, index, seed }: { project: ProjectReel; index: numbe
   }, [count]);
 
   useEffect(() => {
-    const v = clip.current;
-    if (!v) return;
-    // It may have become playable before hydration, when onCanPlay could not be heard.
-    if (v.readyState >= 3) setClipReady(true);
-    if (visible && !reduced) v.play().catch(() => undefined);
-    else v.pause();
-  }, [visible, reduced]);
-
-  useEffect(() => {
     if (!playing) return;
-    const id = window.setInterval(() => {
-      const next = (at.current + 1) % count;
-      at.current = next;
-      setFrame(next);
-      setSeen((s) => Math.max(s, Math.min(count, next + 2)));
-    }, hover ? PLAY_FAST_MS : PLAY_MS);
+    const id = window.setInterval(
+      () => {
+        const next = (at.current + 1) % count;
+        at.current = next;
+        setFrame(next);
+        setSeen((s) => Math.max(s, Math.min(count, next + 2)));
+      },
+      hover ? PLAY_FAST_MS : PLAY_MS,
+    );
     return () => window.clearInterval(id);
   }, [playing, hover, count]);
 
@@ -137,56 +212,65 @@ function WorkCard({ project, index, seed }: { project: ProjectReel; index: numbe
       >
         <span aria-hidden="true" className="work-spin" />
         <span className="relative block aspect-[4/3.35] overflow-hidden rounded-[calc(1rem-2px)] bg-raised sm:rounded-[calc(2rem-2px)]">
-          {frames.slice(0, seen).map((m, i) => (
-            <Image
-              key={m.url}
-              src={m.url}
-              alt=""
-              fill
-              sizes="(min-width: 1024px) 31vw, 48vw"
-              quality={80}
-              data-on={i === frame}
-              className="work-frame object-cover"
-            />
-          ))}
-          {hasVideo ? (
-            <video
-              ref={clip}
-              src={project.video}
-              poster={frames[0]?.url}
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              aria-hidden="true"
-              tabIndex={-1}
-              onCanPlay={() => setClipReady(true)}
-              className={cn("absolute inset-0 size-full object-cover transition-opacity duration-700", clipReady ? "opacity-100" : "opacity-0")}
-            />
-          ) : null}
+          <span className="work-reel absolute inset-0 block" data-style={style}>
+            {frames.slice(0, seen).map((m, i) => (
+              <ReelFrame key={m.url} media={m} on={i === frame} />
+            ))}
+          </span>
           <span aria-hidden="true" className="work-sheen" />
-          <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+          <span
+            aria-hidden="true"
+            className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/85 via-black/35 to-transparent"
+          />
 
           <span className="absolute top-2.5 left-2.5 z-[3] max-w-[calc(100%-1.25rem)] truncate rounded-full bg-black/60 px-2.5 py-1 text-[0.625rem] font-semibold tracking-[0.06em] text-white uppercase ring-1 ring-white/15 sm:top-4 sm:left-4 sm:px-3.5 sm:py-1.5 sm:text-xs">
             {project.category.name}
           </span>
-          {count > 1 && !hasVideo ? (
-            <span aria-hidden="true" className="absolute top-[1.375rem] right-5 z-[3] hidden items-center gap-1.5 sm:flex">
+          {count > 1 ? (
+            <span
+              aria-hidden="true"
+              className="absolute top-[1.375rem] right-5 z-[3] hidden items-center gap-1.5 sm:flex"
+            >
               {frames.map((m, i) => (
-                <span key={m.url} className={cn("h-1.5 rounded-full bg-white transition-all duration-500", i === frame ? "w-5 opacity-100" : "w-1.5 opacity-40")} />
+                <span
+                  key={m.url}
+                  className={cn(
+                    "h-1.5 rounded-full bg-white transition-all duration-500",
+                    i === frame ? "w-5 opacity-100" : "w-1.5 opacity-40",
+                  )}
+                />
               ))}
             </span>
           ) : null}
 
           <div className="absolute inset-x-0 bottom-0 z-[3] flex items-end justify-between gap-4 p-3 sm:p-6">
-            <div className="min-w-0">
-              <h3 className="work-title truncate text-[0.9375rem] leading-tight sm:text-[1.375rem] font-semibold tracking-[-0.01em] text-white">{project.title}</h3>
-              <p className="mt-1 hidden truncate text-sm text-white/70 sm:mt-1.5 sm:block">
-                {project.client || project.category.name}
-                {project.year ? <span className="num">{`, ${project.year}`}</span> : null}
-              </p>
+            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3.5">
+              {project.icon ? (
+                <Image
+                  src={project.icon.url}
+                  alt=""
+                  width={96}
+                  height={96}
+                  sizes="48px"
+                  className="size-8 shrink-0 rounded-lg bg-white object-cover ring-1 ring-white/40 sm:size-12 sm:rounded-xl"
+                />
+              ) : null}
+              <div className="min-w-0">
+                <h3 className="work-title truncate text-[0.9375rem] leading-tight sm:text-[1.375rem] font-semibold tracking-[-0.01em] text-white">
+                  {project.title}
+                </h3>
+                <p className="mt-1 hidden truncate text-sm text-white/70 sm:mt-1.5 sm:block">
+                  {project.client || project.category.name}
+                  {project.year ? (
+                    <span className="num">{`, ${project.year}`}</span>
+                  ) : null}
+                </p>
+              </div>
             </div>
-            <span aria-hidden="true" className="work-arrow hidden size-12 shrink-0 place-items-center sm:grid place-items-center rounded-full bg-white/20 text-white ring-1 ring-white/30">
+            <span
+              aria-hidden="true"
+              className="work-arrow hidden size-12 shrink-0 place-items-center sm:grid place-items-center rounded-full bg-white/20 text-white ring-1 ring-white/30"
+            >
               <ArrowUpRight className="size-5" />
             </span>
           </div>
@@ -197,18 +281,36 @@ function WorkCard({ project, index, seed }: { project: ProjectReel; index: numbe
 }
 
 /** The home page's projects: kind filters over a grid of three, each card a looping reel of the project's screens. */
-export function WorkGallery({ projects, tabs }: { projects: ProjectReel[]; tabs: WorkTab[] }) {
+export function WorkGallery({
+  projects,
+  tabs,
+}: {
+  projects: ProjectReel[];
+  tabs: WorkTab[];
+}) {
   const [filter, setFilter] = useState("all");
-  const list = (filter === "all" ? projects : projects.filter((p) => p.category.slug === filter)).slice(0, SHOWN);
+  const list = (
+    filter === "all"
+      ? projects
+      : projects.filter((p) => p.category.slug === filter)
+  ).slice(0, SHOWN);
   const seed = hashOf(projects.map((p) => p.id).join(""));
 
   if (!projects.length) {
-    return <p className="mt-10 text-soft">Projects will appear here once they are published from the admin.</p>;
+    return (
+      <p className="mt-10 text-soft">
+        Projects will appear here once they are published from the admin.
+      </p>
+    );
   }
 
   return (
     <div>
-      <div role="group" aria-label="Filter projects by kind" className="no-scrollbar -mx-[var(--margin)] mt-6 flex gap-2 overflow-x-auto px-[var(--margin)] pb-1 sm:mx-0 sm:mt-8 sm:flex-wrap sm:gap-2.5 sm:overflow-visible sm:px-0 sm:pb-0">
+      <div
+        role="group"
+        aria-label="Filter projects by kind"
+        className="no-scrollbar -mx-[var(--margin)] mt-6 flex gap-2 overflow-x-auto px-[var(--margin)] pb-1 sm:mx-0 sm:mt-8 sm:flex-wrap sm:gap-2.5 sm:overflow-visible sm:px-0 sm:pb-0"
+      >
         {[{ slug: "all", label: "All projects" }, ...tabs].map((t) => {
           const on = t.slug === filter;
           return (
@@ -229,9 +331,18 @@ export function WorkGallery({ projects, tabs }: { projects: ProjectReel[]; tabs:
           );
         })}
       </div>
-      <ul key={filter} className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 lg:grid-cols-3 lg:gap-5">
+      <ul
+        key={filter}
+        className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 lg:grid-cols-3 lg:gap-5"
+      >
         {list.map((p, i) => (
-          <WorkCard key={p.id} project={p} index={i} seed={seed} />
+          <WorkCard
+            key={p.id}
+            project={p}
+            index={i}
+            styleIndex={projects.indexOf(p)}
+            seed={seed}
+          />
         ))}
       </ul>
     </div>

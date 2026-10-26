@@ -4,4 +4,10 @@ export const heroState = {
   progress: 0,
   /** Smoothed progress the scene actually renders. */
   smooth: 0,
+  /** 0 when the opening mark's pieces are still far away inside the picture, 1 once they have gathered into the logo. */
+  assemble: 1,
+  /** 0 while the closing logo is whole, 1 once it has broken and gone. */
+  finaleBreak: 0,
+  /** 0 while the projects are on show, 1 once they have all gone (as the camera flies back to the start). */
+  retreat: 0,
 };

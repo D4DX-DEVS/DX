@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { activePanel, cameraZ, CAMERA_START_Z, captionIndex, finale, markOpen, panelZ, travel, wordmarkZ } from "./path";
+import {
+  activePanel,
+  cameraZ,
+  CAMERA_START_Z,
+  captionIndex,
+  finale,
+  markOpen,
+  panelZ,
+  travel,
+  wordmarkZ,
+} from "./path";
 
 describe("camera path", () => {
   it("starts in front of the mark and ends past the last panel", () => {

@@ -77,7 +77,13 @@ export function Dust({ near, far, amount, travel }: DustProps) {
     for (let i = 0; i < trailCount; i++) {
       const a = rand() * Math.PI * 2;
       const r = 1.8 + rand() * 4.5;
-      trailSpots.push(new THREE.Vector3(Math.cos(a) * r * 1.3, Math.sin(a) * r * 0.8, near - rand() * (near - far)));
+      trailSpots.push(
+        new THREE.Vector3(
+          Math.cos(a) * r * 1.3,
+          Math.sin(a) * r * 0.8,
+          near - rand() * (near - far),
+        ),
+      );
     }
 
     return {
@@ -118,7 +124,8 @@ export function Dust({ near, far, amount, travel }: DustProps) {
       mesh.setMatrixAt(i, MATRIX.compose(spot, NO_ROTATION, SCALE));
     });
     mesh.instanceMatrix.needsUpdate = true;
-    if (trailMaterial.current) trailMaterial.current.opacity = Math.min(speed.current / 18, 0.75);
+    if (trailMaterial.current)
+      trailMaterial.current.opacity = Math.min(speed.current / 18, 0.75);
   });
 
   return (
@@ -134,7 +141,11 @@ export function Dust({ near, far, amount, travel }: DustProps) {
           blending={THREE.AdditiveBlending}
         />
       </points>
-      <instancedMesh ref={trailMesh} args={[undefined, undefined, trails.length]} frustumCulled={false}>
+      <instancedMesh
+        ref={trailMesh}
+        args={[undefined, undefined, trails.length]}
+        frustumCulled={false}
+      >
         <boxGeometry args={[0.012, 0.012, 1]} />
         <meshBasicMaterial
           ref={trailMaterial}

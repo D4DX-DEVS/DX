@@ -1,33 +1,49 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import Link from "next/link";
-import { Component, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import {
+  Component,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import { ChevronLeft, ChevronRight, Pause, Play } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import { buildTimeline, FPS } from "./hero-timeline";
 import { slideStops, travel } from "./scene/path";
 import { heroState } from "./scene/state";
 
-const HeroScene = dynamic(() => import("./scene/hero-scene"), { ssr: false });
+import { Captions, heroSignature, type HeroProject } from "./hero-captions";
 
-export interface HeroProject {
-  title: string;
-  slug: string;
-  category: string;
-  src: string;
-}
+export type { HeroProject } from "./hero-captions";
+
+const HeroScene = dynamic(() => import("./scene/hero-scene"), { ssr: false });
 
 // The root layout's head script adds `immersive` before first paint when WebGL 2 is there,
 // motion is welcome and the screen is tall enough; it is removed again if the scene fails.
 function subscribe(onChange: () => void): () => void {
   const mo = new MutationObserver(onChange);
-  mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+  mo.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
   return () => mo.disconnect();
 }
-const isImmersive = () => document.documentElement.classList.contains("immersive");
+const isCapturing = () =>
+  new URLSearchParams(window.location.search).has("hero-capture");
+const isImmersive = () =>
+  document.documentElement.classList.contains("immersive");
 const onServer = () => false;
 
-class SceneBoundary extends Component<{ children: ReactNode; onError: () => void }, { failed: boolean }> {
+class SceneBoundary extends Component<
+  { children: ReactNode; onError: () => void },
+  { failed: boolean }
+> {
   state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
@@ -40,58 +56,11 @@ class SceneBoundary extends Component<{ children: ReactNode; onError: () => void
   }
 }
 
-interface CaptionsProps {
-  projects: HeroProject[];
-  current: number;
-}
-
-/** One caption per project, shown while its panel is the one ahead; the last one closes the flight. */
-function Captions({ projects, current }: CaptionsProps) {
-  const closing = current === projects.length;
-  return (
-    <div className="pointer-events-none absolute inset-0 z-20">
-      {projects.map((p, i) => {
-        const on = current === i;
-        return (
-          <div
-            key={p.slug}
-            data-on={on}
-            aria-hidden={!on}
-            inert={!on}
-            className={cn(
-              "hero-caption absolute bottom-[var(--margin)] left-[var(--margin)] max-w-[min(38rem,calc(100%-2*var(--margin)))]",
-              i % 2 === 0 && "md:right-[var(--margin)] md:left-auto md:text-right",
-            )}
-          >
-            <p className="text-[0.9375rem] font-medium text-brand-ink">{p.category}</p>
-            <p className="mt-2 text-[clamp(1.75rem,3vw,2.875rem)] leading-[1.05] font-medium tracking-[-0.03em] text-balance text-ink">
-              {p.title}
-            </p>
-            <Link href={`/work/${p.slug}`} className="link pointer-events-auto mt-4 inline-flex min-h-11 items-center font-medium text-ink">
-              View the project<span className="sr-only">: {p.title}</span>
-            </Link>
-          </div>
-        );
-      })}
-      <div
-        data-on={closing}
-        aria-hidden={!closing}
-        inert={!closing}
-        className="hero-caption absolute inset-x-[var(--margin)] bottom-[var(--margin)] flex flex-col items-center text-center"
-      >
-        <p className="text-[clamp(1.75rem,3vw,2.875rem)] leading-[1.05] font-medium tracking-[-0.03em] text-ink">Yours could be next.</p>
-        <Link href="/work" className="link pointer-events-auto mt-5 inline-flex min-h-11 items-center font-medium text-ink">
-          See all the work
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-const INTRO_MS = 2400;
-const PANEL_MS = 1900;
-const FINALE_MS = 2600;
-const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const INTRO_MS = 1800;
+const PANEL_MS = 1300;
+const FINALE_MS = 2000;
+const easeInOut = (t: number) =>
+  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 /**
  * The hero as a slider that plays itself: the intro, one slide per project, then the closing wordmark,
@@ -106,11 +75,17 @@ function useSlider(count: number, active: boolean) {
   const [fading, setFading] = useState(false);
   const [leg, setLeg] = useState(INTRO_MS);
   const at = useRef(0);
-  const tween = useRef<{ from: number; to: number; t: number; dur: number } | null>(null);
+  const tween = useRef<{
+    from: number;
+    to: number;
+    t: number;
+    dur: number;
+  } | null>(null);
   const dwell = useRef(INTRO_MS);
   const busy = useRef(false);
 
-  const restMs = (i: number) => (i === 0 ? INTRO_MS : i === last ? FINALE_MS : PANEL_MS);
+  const restMs = (i: number) =>
+    i === 0 ? INTRO_MS : i === last ? FINALE_MS : PANEL_MS;
 
   const go = useCallback(
     (i: number) => {
@@ -118,7 +93,7 @@ function useSlider(count: number, active: boolean) {
       const from = heroState.progress;
       const to = stops[i]!;
       const dz = Math.abs(to - from) * travel(count);
-      const dur = Math.min(1900, Math.max(900, 600 + dz * 130));
+      const dur = Math.min(1600, Math.max(950, 550 + dz * 110));
       tween.current = { from, to, t: 0, dur };
       at.current = i;
       setSlide(i);
@@ -184,7 +159,17 @@ function useSlider(count: number, active: boolean) {
     [],
   );
 
-  return { slide, slides: stops.length, playing, setPlaying, fading, leg, go, next: () => (at.current >= last ? go(0) : go(at.current + 1)), prev: () => go(Math.max(0, at.current - 1)) };
+  return {
+    slide,
+    slides: stops.length,
+    playing,
+    setPlaying,
+    fading,
+    leg,
+    go,
+    next: () => (at.current >= last ? go(0) : go(at.current + 1)),
+    prev: () => go(Math.max(0, at.current - 1)),
+  };
 }
 
 interface SliderControlsProps {
@@ -200,27 +185,61 @@ interface SliderControlsProps {
 }
 
 /** Previous and next, one dot per slide (the current one fills as its time runs out), and play or pause. */
-function SliderControls({ slide, slides, playing, leg, titles, onGo, onPrev, onNext, onToggle }: SliderControlsProps) {
-  const label = (i: number) => (i === 0 ? "Introduction" : i === slides - 1 ? "Closing" : (titles[i - 1] ?? `Project ${i}`));
+function SliderControls({
+  slide,
+  slides,
+  playing,
+  leg,
+  titles,
+  onGo,
+  onPrev,
+  onNext,
+  onToggle,
+}: SliderControlsProps) {
+  const label = (i: number) =>
+    i === 0
+      ? "Introduction"
+      : i === slides - 1
+        ? "Closing"
+        : (titles[i - 1] ?? `Project ${i}`);
   return (
     <div
       role="group"
       aria-label="Hero slides"
       className="hero-controls absolute top-[5.75rem] left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/45 p-1.5 ring-1 ring-white/15 backdrop-blur-md md:top-auto md:bottom-[var(--margin)]"
     >
-      <button type="button" onClick={onPrev} aria-label="Previous slide" className="hero-ctl">
+      <button
+        type="button"
+        onClick={onPrev}
+        aria-label="Previous slide"
+        className="hero-ctl"
+      >
         <ChevronLeft className="size-5" aria-hidden="true" />
       </button>
       <ol className="flex items-center gap-1.5 px-1.5">
         {Array.from({ length: slides }, (_, i) => (
           <li key={i}>
-            <button type="button" onClick={() => onGo(i)} aria-label={`Show ${label(i)}`} aria-current={i === slide ? "true" : undefined} className="hero-dot group relative grid h-7 place-items-center">
-              <span className={cn("relative block h-1.5 overflow-hidden rounded-full bg-white/30 transition-[width] duration-500", i === slide ? "w-9" : "w-1.5 group-hover:bg-white/60")}>
+            <button
+              type="button"
+              onClick={() => onGo(i)}
+              aria-label={`Show ${label(i)}`}
+              aria-current={i === slide ? "true" : undefined}
+              className="hero-dot group relative grid h-7 place-items-center"
+            >
+              <span
+                className={cn(
+                  "relative block h-1.5 overflow-hidden rounded-full bg-white/30 transition-[width] duration-500",
+                  i === slide ? "w-9" : "w-1.5 group-hover:bg-white/60",
+                )}
+              >
                 {i === slide ? (
                   <span
                     key={`${slide}-${leg}`}
                     className="hero-dot-fill absolute inset-y-0 left-0 block rounded-full bg-white"
-                    style={{ animationDuration: `${leg}ms`, animationPlayState: playing ? "running" : "paused" }}
+                    style={{
+                      animationDuration: `${leg}ms`,
+                      animationPlayState: playing ? "running" : "paused",
+                    }}
                   />
                 ) : null}
               </span>
@@ -228,11 +247,30 @@ function SliderControls({ slide, slides, playing, leg, titles, onGo, onPrev, onN
           </li>
         ))}
       </ol>
-      <button type="button" onClick={onNext} aria-label="Next slide" className="hero-ctl">
+      <button
+        type="button"
+        onClick={onNext}
+        aria-label="Next slide"
+        className="hero-ctl"
+      >
         <ChevronRight className="size-5" aria-hidden="true" />
       </button>
-      <button type="button" onClick={onToggle} aria-label={playing ? "Pause the slideshow" : "Play the slideshow"} aria-pressed={!playing} className="hero-ctl ml-1 bg-white/10">
-        {playing ? <Pause weight="fill" className="size-4" aria-hidden="true" /> : <Play weight="fill" className="size-4 translate-x-px" aria-hidden="true" />}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={playing ? "Pause the slideshow" : "Play the slideshow"}
+        aria-pressed={!playing}
+        className="hero-ctl ml-1 bg-white/10"
+      >
+        {playing ? (
+          <Pause weight="fill" className="size-4" aria-hidden="true" />
+        ) : (
+          <Play
+            weight="fill"
+            className="size-4 translate-x-px"
+            aria-hidden="true"
+          />
+        )}
       </button>
     </div>
   );
@@ -259,6 +297,9 @@ export function Hero3D({ projects, labelledBy, children }: Hero3DProps) {
   const [ready, setReady] = useState(false);
   const [running, setRunning] = useState(false);
   const [caption, setCaption] = useState(-1);
+  // `?hero-capture` is how the banner video is recorded (scripts/hero-video-capture.mjs): the scene stops playing
+  // itself and is driven frame by frame from outside, so every frame is drawn at exactly its own moment.
+  const capture = useSyncExternalStore(subscribe, isCapturing, onServer);
 
   const onReady = useCallback(() => setReady(true), []);
   // A lost GPU context brings the flat mark back until the browser restores it.
@@ -294,7 +335,58 @@ export function Hero3D({ projects, labelledBy, children }: Hero3DProps) {
   }, [immersive]);
 
   // Plays itself once the 3D is on screen, and only while the hero is in view.
-  const slider = useSlider(count, immersive && ready && running);
+  const slider = useSlider(count, immersive && ready && running && !capture);
+
+  const readyNow = useRef(false);
+  useEffect(() => {
+    readyNow.current = ready;
+  }, [ready]);
+  useEffect(() => {
+    if (!capture || count === 0) return;
+    const plan = buildTimeline(count);
+    const bridge = {
+      fps: FPS,
+      duration: plan.duration,
+      introEnd: plan.introEnd,
+      cues: plan.cues(),
+      signature: heroSignature(projects),
+      projects: projects.map((p) => ({
+        slug: p.slug,
+        title: p.title,
+        category: p.category,
+      })),
+      isReady: () => readyNow.current,
+      /** Draws the scene as it is at `time` seconds and returns its canvas. */
+      frame(time: number): HTMLCanvasElement | null {
+        const gl = (
+          window as unknown as {
+            __heroGL?: {
+              advance: (t: number) => void;
+              canvas: HTMLCanvasElement;
+            };
+          }
+        ).__heroGL;
+        if (!gl) return null;
+        const p = plan.progressAt(time);
+        heroState.progress = p;
+        heroState.smooth = p;
+        heroState.assemble = plan.assembleAt(time);
+        heroState.finaleBreak = plan.breakAt(time);
+        heroState.retreat = plan.retreatAt(time);
+        gl.advance(time);
+        return gl.canvas;
+      },
+    };
+    (window as unknown as { __heroCapture?: typeof bridge }).__heroCapture =
+      bridge;
+    return () => {
+      delete (window as unknown as { __heroCapture?: typeof bridge })
+        .__heroCapture;
+      heroState.assemble = 1;
+      heroState.finaleBreak = 0;
+      heroState.retreat = 0;
+    };
+  }, [capture, count, projects]);
 
   return (
     <section
@@ -307,12 +399,23 @@ export function Hero3D({ projects, labelledBy, children }: Hero3DProps) {
     >
       <div ref={stage} className="hero-stage relative overflow-hidden">
         {immersive ? (
-          <div className={cn("hero-canvas absolute inset-0", slider.fading && "hero-canvas-fading")} aria-hidden="true">
+          <div
+            className={cn(
+              "hero-canvas absolute inset-0",
+              slider.fading && "hero-canvas-fading",
+            )}
+            aria-hidden="true"
+          >
             <SceneBoundary key={attempt} onError={onFail}>
               <HeroScene
-                panels={projects.map((p) => p.src)}
+                panels={projects.map((p) => ({
+                  src: p.src,
+                  icon: p.icon,
+                  title: p.title,
+                }))}
                 stage={stage}
                 running={running}
+                capture={capture}
                 onReady={onReady}
                 onCaption={setCaption}
                 onContext={onContext}
@@ -321,7 +424,9 @@ export function Hero3D({ projects, labelledBy, children }: Hero3DProps) {
           </div>
         ) : null}
         {children}
-        {immersive ? <Captions projects={projects} current={ready ? caption : -1} /> : null}
+        {immersive ? (
+          <Captions projects={projects} current={ready ? caption : -1} />
+        ) : null}
         {immersive && ready ? (
           <SliderControls
             slide={slider.slide}

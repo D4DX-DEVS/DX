@@ -11,7 +11,9 @@ import { forwardRef } from "react";
 export type LucideIcon = Icon;
 
 function adapt(Icon: Icon): Icon {
-  const Adapted = forwardRef<SVGSVGElement, IconProps>((props, ref) => <Icon ref={ref} size={24} {...props} />);
+  const Adapted = forwardRef<SVGSVGElement, IconProps>((props, ref) => (
+    <Icon ref={ref} size={24} {...props} />
+  ));
   Adapted.displayName = Icon.displayName;
   return Adapted;
 }
@@ -94,6 +96,7 @@ export const Quote = adapt(P.Quotes);
 export const Redo2 = adapt(P.ArrowClockwise);
 export const RefreshCw = adapt(P.ArrowsClockwise);
 export const Rocket = adapt(P.RocketLaunch);
+export const RotateCcw = adapt(P.ArrowCounterClockwise);
 export const RotateCw = adapt(P.ArrowClockwise);
 export const Save = adapt(P.FloppyDisk);
 export const Search = adapt(P.MagnifyingGlass);

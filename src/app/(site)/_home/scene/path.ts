@@ -25,10 +25,14 @@ export function panelZ(index: number): number {
 }
 
 /** Panels alternate sides and heights so the flight weaves between them. */
-export function panelPosition(index: number, wide: boolean): [number, number, number] {
+export function panelPosition(
+  index: number,
+  wide: boolean,
+): [number, number, number] {
   const side = index % 2 === 0 ? -1 : 1;
-  const x = side * (wide ? 1.85 : 0.55);
-  const y = (index % 3 === 0 ? 0.35 : index % 3 === 1 ? -0.3 : 0.1) * (wide ? 1 : 0.6);
+  const x = side * (wide ? 1.35 : 0.3);
+  const y =
+    (index % 3 === 0 ? 0.35 : index % 3 === 1 ? -0.3 : 0.1) * (wide ? 1 : 0.6);
   return [x, y, panelZ(index)];
 }
 
@@ -84,7 +88,7 @@ export function captionIndex(progress: number, count: number): number {
 /** 0 far from the mark, 1 once the camera reaches it: drives the mark coming apart. */
 export function markOpen(progress: number, count: number): number {
   const z = cameraZ(progress, count);
-  const t = (6 - z) / (6 - 0.6);
+  const t = (8.4 - z) / (8.4 - 2.4);
   const c = Math.min(1, Math.max(0, t));
   return c * c * (3 - 2 * c);
 }

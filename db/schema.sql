@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS projects (
   cover TEXT NOT NULL,
   gallery TEXT NOT NULL DEFAULT '[]',
   video TEXT NOT NULL DEFAULT '',
+  icon TEXT,
   featured INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('published', 'draft')),
   sort_order INTEGER NOT NULL DEFAULT 0,

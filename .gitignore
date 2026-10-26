@@ -48,3 +48,6 @@ next-env.d.ts
 /.playwright-mcp
 
 !.env.example
+
+# recorded banner video (npm run hero:video)
+/storage/

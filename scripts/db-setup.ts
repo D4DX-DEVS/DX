@@ -13,6 +13,7 @@ function out(message: string): void {
 /** Columns added after a table first shipped; keep each in step with db/schema.sql. */
 const COLUMNS = [
   { table: "projects", column: "video", definition: "TEXT NOT NULL DEFAULT ''" },
+  { table: "projects", column: "icon", definition: "TEXT" },
   { table: "posts", column: "website", definition: "TEXT NOT NULL DEFAULT ''" },
   { table: "posts", column: "play_store", definition: "TEXT NOT NULL DEFAULT ''" },
   { table: "posts", column: "app_store", definition: "TEXT NOT NULL DEFAULT ''" },

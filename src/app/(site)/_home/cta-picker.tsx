@@ -28,10 +28,16 @@ export function CtaPicker({ options, whatsapp }: CtaPickerProps) {
 
   return (
     <div className="flex min-h-[60svh] flex-col">
-      <h2 id="cta-title" className="pt-[clamp(4rem,8vw,7rem)] text-[length:var(--step-xl)] leading-[1] font-medium tracking-[-0.035em]">
+      <h2
+        id="cta-title"
+        className="pt-[clamp(4rem,8vw,7rem)] text-[length:var(--step-xl)] leading-[1] font-medium tracking-[-0.035em]"
+      >
         <span className="block">
           Your{" "}
-          <span key={word} className="inline-block motion-safe:animate-[word-in_480ms_var(--ease-out)]">
+          <span
+            key={word}
+            className="inline-block motion-safe:animate-[word-in_480ms_var(--ease-out)]"
+          >
             {word}
           </span>
         </span>
@@ -39,7 +45,9 @@ export function CtaPicker({ options, whatsapp }: CtaPickerProps) {
       </h2>
 
       <fieldset className="mt-10">
-        <legend className="text-[0.9375rem] font-medium">What are you building?</legend>
+        <legend className="text-[0.9375rem] font-medium">
+          What are you building?
+        </legend>
         <div className="mt-3 flex flex-wrap gap-2">
           {options.map((o) => (
             <button
@@ -49,7 +57,9 @@ export function CtaPicker({ options, whatsapp }: CtaPickerProps) {
               onClick={() => setSelected(o.slug)}
               className={cn(
                 "inline-flex min-h-11 items-center rounded-full px-5 text-[0.9375rem] font-semibold transition-colors duration-200 active:scale-[0.97]",
-                o.slug === selected ? "bg-white text-brand" : "bg-white/10 text-white hover:bg-white/20",
+                o.slug === selected
+                  ? "bg-white text-brand"
+                  : "bg-white/10 text-white hover:bg-white/20",
               )}
             >
               {o.word}
@@ -60,7 +70,8 @@ export function CtaPicker({ options, whatsapp }: CtaPickerProps) {
 
       <div className="mt-auto flex flex-col gap-6 pt-14 pb-10 md:flex-row md:items-end md:justify-between">
         <p className="max-w-[38ch] text-[length:var(--step-lead)] leading-snug text-white/85">
-          Tell us who will use it and what it must do on day one. We will call you back to talk it through.
+          Tell us who will use it and what it must do on day one. We will call
+          you back to talk it through.
         </p>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
           {phone ? (
@@ -73,7 +84,10 @@ export function CtaPicker({ options, whatsapp }: CtaPickerProps) {
               Message on WhatsApp
             </a>
           ) : null}
-          <Link href={`/contact?type=${encodeURIComponent(current?.slug ?? "")}`} className="btn btn-ink order-1 min-h-12 px-7 sm:order-2">
+          <Link
+            href={`/contact?type=${encodeURIComponent(current?.slug ?? "")}`}
+            className="btn btn-ink order-1 min-h-12 px-7 sm:order-2"
+          >
             Start a project
           </Link>
         </div>

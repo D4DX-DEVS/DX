@@ -6,13 +6,45 @@ import * as THREE from "three";
 import { seeded } from "./geometry";
 
 /** Symbols that read as code and machine learning. Each is drawn once into a cell of an atlas texture. */
-const GLYPHS = ["{ }", "</>", "01", "10", "AI", "fn", "=>", "[ ]", "( )", "if", "λ", "Σ", "π", "&&", "#", "::", "//", "<>", "ƒ", "∞", "ML", "0x", "1", "0"];
+const GLYPHS = [
+  "{ }",
+  "</>",
+  "01",
+  "10",
+  "AI",
+  "fn",
+  "=>",
+  "[ ]",
+  "( )",
+  "if",
+  "λ",
+  "Σ",
+  "π",
+  "&&",
+  "#",
+  "::",
+  "//",
+  "<>",
+  "ƒ",
+  "∞",
+  "ML",
+  "0x",
+  "1",
+  "0",
+];
 const COLS = 8;
 const ROWS = Math.ceil(GLYPHS.length / COLS);
 const CELL = 128;
 
 /** Colours of the symbols: mostly the brand's blues, a few cyan, violet and green. */
-const TINTS = ["#6f8fff", "#8ea6ff", "#4d6dff", "#5fd0ff", "#a78bfa", "#7be0b0"];
+const TINTS = [
+  "#6f8fff",
+  "#8ea6ff",
+  "#4d6dff",
+  "#5fd0ff",
+  "#a78bfa",
+  "#7be0b0",
+];
 
 function atlas(): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
@@ -50,7 +82,7 @@ const GLYPH_VERTEX = /* glsl */ `
     vec3 p = position;
     // Rising slowly, wrapping at the top, with a little sideways sway.
     p.y = mod(position.y + uTime * aSpeed + uRange * 0.5, uRange) - uRange * 0.5;
-    p.x += sin(uTime * 0.4 + aSeed * 6.2831) * 0.25;
+    p.x += sin(uTime * 0.3 + aSeed * 6.2831) * 0.12;
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
     gl_PointSize = aSize * uPixelRatio * (300.0 / -mv.z);
@@ -118,83 +150,99 @@ interface CodeFieldProps {
  * with light running along them, like a neural network.
  */
 export function CodeField({ near, far, glyphs, nodes }: CodeFieldProps) {
-  const { glyphGeo, lineGeo, glyphUniforms, lineUniforms, texture } = useMemo(() => {
-    const rand = seeded(23);
-    const tex = atlas();
-    const RANGE = 12;
+  const { glyphGeo, lineGeo, glyphUniforms, lineUniforms, texture } =
+    useMemo(() => {
+      const rand = seeded(23);
+      const tex = atlas();
+      const RANGE = 12;
 
-    const pos = new Float32Array(glyphs * 3);
-    const gl = new Float32Array(glyphs);
-    const size = new Float32Array(glyphs);
-    const seed = new Float32Array(glyphs);
-    const speed = new Float32Array(glyphs);
-    const tint = new Float32Array(glyphs * 3);
-    const color = new THREE.Color();
-    for (let i = 0; i < glyphs; i++) {
-      // Spread around the flight path, leaving the middle clearer so the panels stay readable.
-      const side = rand() < 0.5 ? -1 : 1;
-      pos[i * 3] = side * (1.2 + rand() * 7.5);
-      pos[i * 3 + 1] = (rand() - 0.5) * RANGE;
-      pos[i * 3 + 2] = near - rand() * (near - far);
-      gl[i] = Math.floor(rand() * GLYPHS.length);
-      size[i] = 0.6 + rand() * rand() * 1.6;
-      seed[i] = rand();
-      speed[i] = 0.12 + rand() * 0.32;
-      color.set(TINTS[Math.floor(rand() * TINTS.length)]!);
-      tint.set([color.r, color.g, color.b], i * 3);
-    }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-    g.setAttribute("aGlyph", new THREE.BufferAttribute(gl, 1));
-    g.setAttribute("aSize", new THREE.BufferAttribute(size, 1));
-    g.setAttribute("aSeed", new THREE.BufferAttribute(seed, 1));
-    g.setAttribute("aSpeed", new THREE.BufferAttribute(speed, 1));
-    g.setAttribute("aTint", new THREE.BufferAttribute(tint, 3));
-
-    // The network: nodes scattered the same way, each joined to up to three near ones.
-    const pts: THREE.Vector3[] = [];
-    for (let i = 0; i < nodes; i++) {
-      const side = rand() < 0.5 ? -1 : 1;
-      pts.push(new THREE.Vector3(side * (2 + rand() * 7), (rand() - 0.5) * 8, near - rand() * (near - far)));
-    }
-    const segs: number[] = [];
-    const phases: number[] = [];
-    const links = new Set<string>();
-    pts.forEach((a, i) => {
-      const near3 = pts
-        .map((b, j) => ({ j, d: a.distanceTo(b) }))
-        .filter((n) => n.j !== i && n.d < 3.4)
-        .sort((m, n) => m.d - n.d)
-        .slice(0, 3);
-      for (const n of near3) {
-        const key = i < n.j ? `${i}-${n.j}` : `${n.j}-${i}`;
-        if (links.has(key)) continue;
-        links.add(key);
-        const b = pts[n.j]!;
-        const phase = rand();
-        segs.push(a.x, a.y, a.z, b.x, b.y, b.z);
-        phases.push(phase, phase + 0.35);
+      const pos = new Float32Array(glyphs * 3);
+      const gl = new Float32Array(glyphs);
+      const size = new Float32Array(glyphs);
+      const seed = new Float32Array(glyphs);
+      const speed = new Float32Array(glyphs);
+      const tint = new Float32Array(glyphs * 3);
+      const color = new THREE.Color();
+      for (let i = 0; i < glyphs; i++) {
+        // Spread around the flight path, leaving the middle clearer so the panels stay readable.
+        const side = rand() < 0.5 ? -1 : 1;
+        pos[i * 3] = side * (1.2 + rand() * 7.5);
+        pos[i * 3 + 1] = (rand() - 0.5) * RANGE;
+        pos[i * 3 + 2] = near - rand() * (near - far);
+        gl[i] = Math.floor(rand() * GLYPHS.length);
+        size[i] = 0.6 + rand() * rand() * 1.6;
+        seed[i] = rand();
+        speed[i] = 0.12 + rand() * 0.32;
+        color.set(TINTS[Math.floor(rand() * TINTS.length)]!);
+        tint.set([color.r, color.g, color.b], i * 3);
       }
-    });
-    const lg = new THREE.BufferGeometry();
-    lg.setAttribute("position", new THREE.BufferAttribute(new Float32Array(segs), 3));
-    lg.setAttribute("aPhase", new THREE.BufferAttribute(new Float32Array(phases), 1));
+      const g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      g.setAttribute("aGlyph", new THREE.BufferAttribute(gl, 1));
+      g.setAttribute("aSize", new THREE.BufferAttribute(size, 1));
+      g.setAttribute("aSeed", new THREE.BufferAttribute(seed, 1));
+      g.setAttribute("aSpeed", new THREE.BufferAttribute(speed, 1));
+      g.setAttribute("aTint", new THREE.BufferAttribute(tint, 3));
 
-    return {
-      texture: tex,
-      glyphGeo: g,
-      lineGeo: lg,
-      glyphUniforms: {
-        uTime: { value: 0 },
-        uPixelRatio: { value: 1 },
-        uRange: { value: RANGE },
-        uAtlas: { value: tex },
-        uCols: { value: COLS },
-        uRows: { value: ROWS },
-      },
-      lineUniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color("#5b7bff") } },
-    };
-  }, [near, far, glyphs, nodes]);
+      // The network: nodes scattered the same way, each joined to up to three near ones.
+      const pts: THREE.Vector3[] = [];
+      for (let i = 0; i < nodes; i++) {
+        const side = rand() < 0.5 ? -1 : 1;
+        pts.push(
+          new THREE.Vector3(
+            side * (2 + rand() * 7),
+            (rand() - 0.5) * 8,
+            near - rand() * (near - far),
+          ),
+        );
+      }
+      const segs: number[] = [];
+      const phases: number[] = [];
+      const links = new Set<string>();
+      pts.forEach((a, i) => {
+        const near3 = pts
+          .map((b, j) => ({ j, d: a.distanceTo(b) }))
+          .filter((n) => n.j !== i && n.d < 3.4)
+          .sort((m, n) => m.d - n.d)
+          .slice(0, 3);
+        for (const n of near3) {
+          const key = i < n.j ? `${i}-${n.j}` : `${n.j}-${i}`;
+          if (links.has(key)) continue;
+          links.add(key);
+          const b = pts[n.j]!;
+          const phase = rand();
+          segs.push(a.x, a.y, a.z, b.x, b.y, b.z);
+          phases.push(phase, phase + 0.35);
+        }
+      });
+      const lg = new THREE.BufferGeometry();
+      lg.setAttribute(
+        "position",
+        new THREE.BufferAttribute(new Float32Array(segs), 3),
+      );
+      lg.setAttribute(
+        "aPhase",
+        new THREE.BufferAttribute(new Float32Array(phases), 1),
+      );
+
+      return {
+        texture: tex,
+        glyphGeo: g,
+        lineGeo: lg,
+        glyphUniforms: {
+          uTime: { value: 0 },
+          uPixelRatio: { value: 1 },
+          uRange: { value: RANGE },
+          uAtlas: { value: tex },
+          uCols: { value: COLS },
+          uRows: { value: ROWS },
+        },
+        lineUniforms: {
+          uTime: { value: 0 },
+          uColor: { value: new THREE.Color("#5b7bff") },
+        },
+      };
+    }, [near, far, glyphs, nodes]);
 
   useLayoutEffect(
     () => () => {
@@ -213,16 +261,35 @@ export function CodeField({ near, far, glyphs, nodes }: CodeFieldProps) {
       glyphMaterial.current.uniforms.uTime.value = state.clock.elapsedTime;
       glyphMaterial.current.uniforms.uPixelRatio.value = state.viewport.dpr;
     }
-    if (lineMaterial.current) lineMaterial.current.uniforms.uTime.value = state.clock.elapsedTime;
+    if (lineMaterial.current)
+      lineMaterial.current.uniforms.uTime.value = state.clock.elapsedTime;
   });
 
   return (
     <>
       <lineSegments geometry={lineGeo} frustumCulled={false}>
-        <shaderMaterial ref={lineMaterial} uniforms={lineUniforms} vertexShader={LINE_VERTEX} fragmentShader={LINE_FRAGMENT} transparent depthWrite={false} blending={THREE.AdditiveBlending} />
+        <shaderMaterial
+          ref={lineMaterial}
+          uniforms={lineUniforms}
+          vertexShader={LINE_VERTEX}
+          fragmentShader={LINE_FRAGMENT}
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
       </lineSegments>
-      <points geometry={glyphGeo} frustumCulled={false}>
-        <shaderMaterial ref={glyphMaterial} uniforms={glyphUniforms} vertexShader={GLYPH_VERTEX} fragmentShader={GLYPH_FRAGMENT} transparent depthWrite={false} blending={THREE.AdditiveBlending} />
+      {/* The code symbols drift over everything, the screens included, like particles in the water around them. */}
+      <points geometry={glyphGeo} frustumCulled={false} renderOrder={10}>
+        <shaderMaterial
+          ref={glyphMaterial}
+          uniforms={glyphUniforms}
+          vertexShader={GLYPH_VERTEX}
+          fragmentShader={GLYPH_FRAGMENT}
+          transparent
+          depthTest={false}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
       </points>
     </>
   );

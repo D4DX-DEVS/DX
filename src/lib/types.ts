@@ -16,6 +16,23 @@ export interface CategoryDTO {
   count: number;
 }
 
+/** The recorded banner video of the home page (see scripts/hero-video-capture.mjs). */
+export interface HeroVideoConfig {
+  video: string;
+  poster: Media;
+  /** Which projects (and pictures) the video was recorded from; see heroSignature in the home page. */
+  signature: string;
+  /** The tall version for phones, when one was recorded. */
+  mobile: { video: string; poster: Media } | null;
+  /** Seconds. */
+  duration: number;
+  /** How long the opening words show before the flight starts, in seconds. */
+  introEnd: number;
+  /** When each project's caption shows (index into `projects`; `projects.length` is the closing line). */
+  cues: { from: number; to: number; index: number }[];
+  projects: { slug: string; title: string; category: string }[];
+}
+
 export interface ProjectCard {
   id: string;
   title: string;
@@ -24,6 +41,8 @@ export interface ProjectCard {
   year: number | null;
   category: { name: string; slug: string };
   cover: Media;
+  /** The project's app icon or logo, when it has one. */
+  icon: Media | null;
 }
 
 export type Platform = "android" | "ios" | "web" | "desktop";

@@ -8,12 +8,20 @@ import { WorkGallery } from "./work-gallery";
 
 /** Recent projects on a dark band: kind filters over a grid of reels, with a way into the full index. */
 export async function Work() {
-  const [projects, categories] = await Promise.all([getProjectReels(24), getCategories()]);
+  const [projects, categories] = await Promise.all([
+    getProjectReels(24),
+    getCategories(),
+  ]);
   const present = new Set(projects.map((p) => p.category.slug));
-  const tabs = categories.filter((c) => present.has(c.slug)).map((c) => ({ slug: c.slug, label: c.name }));
+  const tabs = categories
+    .filter((c) => present.has(c.slug))
+    .map((c) => ({ slug: c.slug, label: c.name }));
 
   return (
-    <section aria-labelledby="work-title" className="theme-dark dark-band py-[clamp(2.5rem,5vw,4rem)]">
+    <section
+      aria-labelledby="work-title"
+      className="theme-dark dark-band py-[clamp(2.5rem,5vw,4rem)]"
+    >
       <BandLights />
       <div className="frame">
         <Reveal>
@@ -22,7 +30,8 @@ export async function Work() {
             eyebrow="Our work"
             title={
               <>
-                Products we <span className="text-shine">shipped</span> and still look after
+                Products we <span className="text-shine">shipped</span> and
+                still look after
               </>
             }
             lead="Recent work across web, mobile and ERP, built for our clients and in daily use."

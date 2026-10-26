@@ -3,14 +3,153 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { coverFace, prepareTextures, roundedRect } from "./geometry";
-import { activePanel, panelPosition } from "./path";
+import { coverFace, prepareTextures, roundedRect, smooth01 } from "./geometry";
+import { activePanel, cameraZ, markOpen, panelPosition, panelZ } from "./path";
 import { heroState } from "./state";
 
 const ASPECT = 4 / 3;
 const SLAB_DEPTH = 0.08;
 const DIM = new THREE.Color(0.42, 0.42, 0.4);
 const LIT = new THREE.Color(1, 1, 1);
+
+/** How far ahead of the camera a panel begins to swim up, and how far ahead it has settled. */
+const RISE_FROM = 15;
+const RISE_TO = 5.2;
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+export interface PanelSource {
+  src: string;
+  /** The project's icon or logo, drawn over the picture (optional). */
+  icon: string | null;
+  title: string;
+}
+
+/** Loads an image for drawing on a canvas, trying again once after a pause (a cold image optimiser or a dropped request). */
+function loadImage(src: string, tries = 2): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.decoding = "async";
+    img.onload = () => resolve(img);
+    img.onerror = () => {
+      if (tries > 1)
+        window.setTimeout(() => resolve(loadImage(src, tries - 1)), 700);
+      else resolve(null);
+    };
+    img.src = src;
+  });
+}
+
+function roundRectPath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+): void {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+/**
+ * The cover with the project's icon and name set over it, in a small dark pill at the bottom-left, so every
+ * panel in the flight says whose work it is. Drawn once into a canvas that becomes the panel's texture.
+ */
+function labelled(
+  cover: HTMLImageElement,
+  icon: HTMLImageElement | null,
+  title: string,
+): THREE.Texture {
+  const W = cover.naturalWidth;
+  const H = cover.naturalHeight;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(cover, 0, 0, W, H);
+
+  // Glass: a cool tint, a glare across the top-left, a soft diagonal streak and a bright rim, so each screen
+  // reads as if seen through a pane.
+  ctx.fillStyle = "rgba(90,130,255,0.07)";
+  ctx.fillRect(0, 0, W, H);
+  const glare = ctx.createLinearGradient(0, 0, W * 0.55, H * 0.75);
+  glare.addColorStop(0, "rgba(255,255,255,0.30)");
+  glare.addColorStop(0.45, "rgba(255,255,255,0.06)");
+  glare.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = glare;
+  ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(W * 0.52, 0);
+  ctx.lineTo(W * 0.66, 0);
+  ctx.lineTo(W * 0.36, H);
+  ctx.lineTo(W * 0.22, H);
+  ctx.closePath();
+  const streak = ctx.createLinearGradient(W * 0.3, 0, W * 0.6, 0);
+  streak.addColorStop(0, "rgba(255,255,255,0)");
+  streak.addColorStop(0.5, "rgba(255,255,255,0.10)");
+  streak.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = streak;
+  ctx.fill();
+  ctx.restore();
+  const rim = Math.max(2, W * 0.004);
+  roundRectPath(ctx, rim / 2, rim / 2, W - rim, H - rim, W * 0.035);
+  ctx.strokeStyle = "rgba(200,220,255,0.55)";
+  ctx.lineWidth = rim;
+  ctx.stroke();
+
+  const pillH = H * 0.115;
+  const pad = pillH * 0.16;
+  const iconSize = pillH - pad * 2;
+  const fontSize = pillH * 0.42;
+  ctx.font = `600 ${fontSize}px ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif`;
+  const maxText = W * 0.5;
+  let text = title;
+  while (ctx.measureText(text).width > maxText && text.length > 4)
+    text = `${text.slice(0, -2)}…`;
+  const textW = ctx.measureText(text).width;
+  const pillW =
+    pad + (icon ? iconSize + pad * 1.1 : pad) + textW + pillH * 0.42;
+  const x = W * 0.04;
+  const y = H - H * 0.05 - pillH;
+
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.45)";
+  ctx.shadowBlur = pillH * 0.35;
+  ctx.shadowOffsetY = pillH * 0.1;
+  roundRectPath(ctx, x, y, pillW, pillH, pillH / 2);
+  ctx.fillStyle = "rgba(8,12,26,0.78)";
+  ctx.fill();
+  ctx.restore();
+  roundRectPath(ctx, x, y, pillW, pillH, pillH / 2);
+  ctx.strokeStyle = "rgba(255,255,255,0.22)";
+  ctx.lineWidth = Math.max(1, pillH * 0.02);
+  ctx.stroke();
+
+  let tx = x + pad + pillH * 0.22;
+  if (icon) {
+    const ix = x + pad;
+    const iy = y + pad;
+    ctx.save();
+    roundRectPath(ctx, ix, iy, iconSize, iconSize, iconSize * 0.24);
+    ctx.clip();
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(ix, iy, iconSize, iconSize);
+    ctx.drawImage(icon, ix, iy, iconSize, iconSize);
+    ctx.restore();
+    tx = ix + iconSize + pad * 1.1;
+  }
+  ctx.fillStyle = "#fff";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, tx, y + pillH / 2 + fontSize * 0.04);
+  return new THREE.CanvasTexture(canvas);
+}
 
 interface TextureEntry {
   status: "pending" | "done";
@@ -30,39 +169,50 @@ function placeholder(): THREE.Texture {
   return tex;
 }
 
-/** Loads one screen, trying again once after a pause (a cold image optimiser or a dropped request). */
-function loadOne(src: string, tries = 2): Promise<{ texture: THREE.Texture; ok: boolean }> {
-  return new Promise((resolve) => {
-    new THREE.TextureLoader().load(
-      src,
-      (texture) => resolve({ texture, ok: true }),
-      undefined,
-      () => {
-        if (tries > 1) window.setTimeout(() => resolve(loadOne(src, tries - 1)), 700);
-        else resolve({ texture: placeholder(), ok: false });
-      },
-    );
-  });
+async function loadPanel(
+  item: PanelSource,
+): Promise<{ texture: THREE.Texture; ok: boolean }> {
+  const [cover, icon] = await Promise.all([
+    loadImage(item.src),
+    item.icon ? loadImage(item.icon, 1) : Promise.resolve(null),
+  ]);
+  if (!cover) return { texture: placeholder(), ok: false };
+  return { texture: labelled(cover, icon, item.title), ok: true };
 }
 
 /**
- * Every screen as a texture. Suspends until all have loaded or failed, and never throws: a screen that
+ * Every panel as a texture. Suspends until all have loaded or failed, and never throws: a screen that
  * cannot be fetched (or takes over 15 seconds) becomes a placeholder, and is fetched again next mount.
  */
-function useTextures(srcs: string[]): THREE.Texture[] {
-  const key = srcs.join("|");
+function useTextures(items: PanelSource[]): THREE.Texture[] {
+  const key = items
+    .map((i) => `${i.src}|${i.icon ?? ""}|${i.title}`)
+    .join("\n");
   let entry = cache.get(key);
   if (!entry) {
-    const created: TextureEntry = { status: "pending", promise: Promise.resolve(), value: [], partial: false };
-    const results: ({ texture: THREE.Texture; ok: boolean } | null)[] = srcs.map(() => null);
-    const loads = srcs.map((src, i) =>
-      loadOne(src).then((r) => {
+    const created: TextureEntry = {
+      status: "pending",
+      promise: Promise.resolve(),
+      value: [],
+      partial: false,
+    };
+    const results: ({ texture: THREE.Texture; ok: boolean } | null)[] =
+      items.map(() => null);
+    const loads = items.map((item, i) =>
+      loadPanel(item).then((r) => {
         results[i] = r;
       }),
     );
-    const timeout = new Promise<void>((resolve) => window.setTimeout(resolve, LOAD_TIMEOUT_MS));
-    created.promise = Promise.race([Promise.all(loads).then(() => undefined), timeout]).then(() => {
-      const settled = results.map((r) => r ?? { texture: placeholder(), ok: false });
+    const timeout = new Promise<void>((resolve) =>
+      window.setTimeout(resolve, LOAD_TIMEOUT_MS),
+    );
+    created.promise = Promise.race([
+      Promise.all(loads).then(() => undefined),
+      timeout,
+    ]).then(() => {
+      const settled = results.map(
+        (r) => r ?? { texture: placeholder(), ok: false },
+      );
       created.value = settled.map((r) => r.texture);
       created.partial = settled.some((r) => !r.ok);
       prepareTextures(created.value);
@@ -83,7 +233,7 @@ function useTextures(srcs: string[]): THREE.Texture[] {
 }
 
 interface PanelsProps {
-  srcs: string[];
+  items: PanelSource[];
   wide: boolean;
 }
 
@@ -91,28 +241,59 @@ interface PanelsProps {
  * One floating slab per shipped app, carrying its artwork, set along the camera's path. The
  * panel the caption is talking about is lit; the others wait, dimmed.
  */
-export function Panels({ srcs, wide }: PanelsProps) {
-  const textures = useTextures(srcs);
-  const width = wide ? 2.7 : 1.7;
+export function Panels({ items, wide }: PanelsProps) {
+  const textures = useTextures(items);
+  const width = wide ? 1.55 : 0.78;
   const height = width / ASPECT;
   const radius = width * 0.035;
 
-  const { face, slab, edge } = useMemo(() => {
+  const { face, slab, edge, pane, glass } = useMemo(() => {
     const border = width * 0.025;
-    const slabGeo = new THREE.ExtrudeGeometry(roundedRect(width + border * 2, height + border * 2, radius + border), {
-      depth: SLAB_DEPTH,
-      bevelEnabled: true,
-      bevelThickness: 0.015,
-      bevelSize: 0.015,
-      bevelSegments: 3,
-      curveSegments: 10,
-    });
+    const slabGeo = new THREE.ExtrudeGeometry(
+      roundedRect(width + border * 2, height + border * 2, radius + border),
+      {
+        depth: SLAB_DEPTH,
+        bevelEnabled: true,
+        bevelThickness: 0.015,
+        bevelSize: 0.015,
+        bevelSegments: 3,
+        curveSegments: 10,
+      },
+    );
     const faceGeo = coverFace(roundedRect(width, height, radius), ASPECT, 10);
     faceGeo.translate(0, 0, SLAB_DEPTH + 0.02);
+    // A clear pane just in front of the picture: it catches the environment's light strips, so a glare moves
+    // across the glass as the panel turns.
+    const paneGeo = new THREE.ShapeGeometry(
+      roundedRect(width, height, radius),
+      10,
+    );
+    paneGeo.translate(0, 0, SLAB_DEPTH + 0.035);
     return {
       face: faceGeo,
       slab: slabGeo,
-      edge: new THREE.MeshStandardMaterial({ color: "#121828", metalness: 0.8, roughness: 0.3 }),
+      pane: paneGeo,
+      // The slab is frosted blue glass rather than dark metal.
+      edge: new THREE.MeshPhysicalMaterial({
+        color: "#7f9dff",
+        metalness: 0.1,
+        roughness: 0.12,
+        clearcoat: 1,
+        clearcoatRoughness: 0.08,
+        transparent: true,
+        opacity: 0.55,
+        envMapIntensity: 1.6,
+      }),
+      glass: new THREE.MeshPhysicalMaterial({
+        color: "#ffffff",
+        metalness: 0,
+        roughness: 0.04,
+        clearcoat: 1,
+        transparent: true,
+        opacity: 0.2,
+        envMapIntensity: 2.6,
+        depthWrite: false,
+      }),
     };
   }, [width, height, radius]);
 
@@ -121,25 +302,53 @@ export function Panels({ srcs, wide }: PanelsProps) {
       face.dispose();
       slab.dispose();
       edge.dispose();
+      pane.dispose();
+      glass.dispose();
     },
-    [face, slab, edge],
+    [face, slab, edge, pane, glass],
   );
 
   const groups = useRef<(THREE.Group | null)[]>([]);
   const faces = useRef<(THREE.MeshBasicMaterial | null)[]>([]);
 
   useFrame((state, dt) => {
-    const lit = activePanel(heroState.smooth, srcs.length);
+    const lit = activePanel(heroState.smooth, items.length);
+    const camZ = cameraZ(heroState.smooth, items.length);
+    // The projects wait unseen until the logo has broken: they come out of the cloud of pieces.
+    const born = smooth01(
+      (markOpen(heroState.smooth, items.length) - 0.55) / 0.45,
+    );
     const t = state.clock.elapsedTime;
-    for (let i = 0; i < srcs.length; i++) {
+    for (let i = 0; i < items.length; i++) {
       const g = groups.current[i];
       if (g) {
         const [x, y, z] = panelPosition(i, wide);
-        g.position.set(x, y + Math.sin(t * 0.6 + i * 1.7) * 0.06, z);
-        g.rotation.z = Math.sin(t * 0.4 + i) * 0.015;
+        // Each screen bursts out of the middle: far ahead it sits on the flight line, small, and as the camera
+        // nears it opens out to its place at the side and grows to full size. One smooth ease, nothing that wobbles.
+        const k = THREE.MathUtils.clamp(
+          (RISE_FROM - (camZ - panelZ(i))) / (RISE_FROM - RISE_TO),
+          0,
+          1,
+        );
+        const e = easeOutCubic(k);
+        g.position.set(x * e, y * e + Math.sin(t * 0.5 + i * 1.7) * 0.03, z);
+        const away = 1 - smooth01(heroState.retreat * 3);
+        g.visible = born > 0.01 && away > 0.01;
+        g.scale.setScalar((0.3 + 0.7 * e) * born * away);
+        g.rotation.z = 0;
         // Each panel turns a little toward the pointer, on top of its own lean toward the corridor.
-        g.rotation.y = THREE.MathUtils.damp(g.rotation.y, (i % 2 === 0 ? 1 : -1) * 0.22 + state.pointer.x * 0.28, 4, dt);
-        g.rotation.x = THREE.MathUtils.damp(g.rotation.x, -state.pointer.y * 0.14, 4, dt);
+        g.rotation.y = THREE.MathUtils.damp(
+          g.rotation.y,
+          (i % 2 === 0 ? 1 : -1) * 0.22 + state.pointer.x * 0.28,
+          4,
+          dt,
+        );
+        g.rotation.x = THREE.MathUtils.damp(
+          g.rotation.x,
+          -state.pointer.y * 0.14,
+          4,
+          dt,
+        );
       }
       const m = faces.current[i];
       if (m) m.color.lerp(i === lit ? LIT : DIM, 1 - Math.exp(-5 * dt));
@@ -152,7 +361,7 @@ export function Panels({ srcs, wide }: PanelsProps) {
         const side = i % 2 === 0 ? -1 : 1;
         return (
           <group
-            key={srcs[i]}
+            key={items[i]!.src}
             ref={(g) => {
               groups.current[i] = g;
             }}
@@ -168,8 +377,11 @@ export function Panels({ srcs, wide }: PanelsProps) {
                 map={texture}
                 color={DIM}
                 toneMapped={false}
+                transparent
+                opacity={0.9}
               />
             </mesh>
+            <mesh geometry={pane} material={glass} />
           </group>
         );
       })}

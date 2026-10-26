@@ -2,7 +2,12 @@ import { ShimmerImage } from "@/components/media/shimmer-image";
 import { Tilt } from "@/components/motion/tilt";
 import type { Platform, ProjectIndexEntry } from "@/lib/types";
 
-const PLATFORM_LABEL: Record<Platform, string> = { android: "Android", ios: "iOS", web: "Web", desktop: "Desktop" };
+const PLATFORM_LABEL: Record<Platform, string> = {
+  android: "Android",
+  ios: "iOS",
+  web: "Web",
+  desktop: "Desktop",
+};
 
 function host(url: string): string {
   try {
@@ -23,12 +28,18 @@ function BrowserFrame({ project }: { project: ProjectIndexEntry }) {
         <span className="size-2.5 rounded-full bg-[#febc2e]" />
         <span className="size-2.5 rounded-full bg-[#28c840]" />
         {address ? (
-          <span className="mx-auto max-w-[60%] truncate rounded-md bg-white px-3 py-0.5 text-xs text-[#4b5263]">{address}</span>
+          <span className="mx-auto max-w-[60%] truncate rounded-md bg-white px-3 py-0.5 text-xs text-[#4b5263]">
+            {address}
+          </span>
         ) : null}
       </div>
       <ShimmerImage
         media={image}
-        alt={address ? `${address}, the live site` : `${project.title}, the live site`}
+        alt={
+          address
+            ? `${address}, the live site`
+            : `${project.title}, the live site`
+        }
         fill
         sizes="(min-width: 1024px) 58vw, 100vw"
         className="aspect-[16/10] bg-white"
@@ -54,7 +65,10 @@ function AppShot({ project }: { project: ProjectIndexEntry }) {
       {project.platforms.length ? (
         <div className="tilt-pop pointer-events-none absolute top-3 left-3 flex flex-wrap gap-1.5">
           {project.platforms.map((p) => (
-            <span key={p} className="rounded-full bg-ground/90 px-2.5 py-1 text-xs font-medium text-ink">
+            <span
+              key={p}
+              className="rounded-full bg-ground/90 px-2.5 py-1 text-xs font-medium text-ink"
+            >
               {PLATFORM_LABEL[p]}
             </span>
           ))}
@@ -71,6 +85,15 @@ function AppShot({ project }: { project: ProjectIndexEntry }) {
 
 /** The picture at the head of a service card: the proof project's own screens, leaning toward the pointer. */
 export function ServiceVisual({ project }: { project: ProjectIndexEntry }) {
-  const isSite = project.platforms.length > 0 && project.platforms.every((p) => p === "web");
-  return <Tilt className="relative">{isSite ? <BrowserFrame project={project} /> : <AppShot project={project} />}</Tilt>;
+  const isSite =
+    project.platforms.length > 0 && project.platforms.every((p) => p === "web");
+  return (
+    <Tilt className="relative">
+      {isSite ? (
+        <BrowserFrame project={project} />
+      ) : (
+        <AppShot project={project} />
+      )}
+    </Tilt>
+  );
 }

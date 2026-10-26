@@ -449,16 +449,59 @@
     transform 520ms var(--ease-out),
     box-shadow 520ms var(--ease-out);
 }
+/* A reel: each screen fades in and its picture moves in its project's own way (data-style on .work-reel, set
+   from the project's place in the list). --from and --to are where the picture starts and ends, --move how long
+   it takes. When a screen fades out its picture stays put and only resets once it is invisible. */
+.work-reel {
+  perspective: 900px;
+  --from: scale(1);
+  --to: scale(1.08);
+  --move: 5200ms;
+}
+.work-reel[data-style="slide"] {
+  --from: translateX(16%) scale(1.02);
+  --to: translateX(0) scale(1.06);
+  --move: 1300ms;
+}
+.work-reel[data-style="rise"] {
+  --from: translateY(18%) scale(0.95);
+  --to: translateY(0) scale(1.02);
+  --move: 1200ms;
+}
+.work-reel[data-style="zoom"] {
+  --from: scale(1.28);
+  --to: scale(1);
+  --move: 4200ms;
+}
+.work-reel[data-style="flip"] {
+  --from: rotateY(-60deg) scale(0.9);
+  --to: rotateY(0deg) scale(1.03);
+  --move: 1500ms;
+}
+.work-reel[data-style="drift"] {
+  --from: translate(-5%, 4%) scale(1.1);
+  --to: translate(4%, -3%) scale(1.14);
+  --move: 5200ms;
+}
+.work-reel[data-style="tilt"] {
+  --from: rotate(-7deg) scale(0.9);
+  --to: rotate(0deg) scale(1.02);
+  --move: 1400ms;
+}
 .work-frame {
   opacity: 0;
-  transform: scale(1);
-  transition:
-    opacity 800ms ease,
-    transform 5200ms linear;
+  transition: opacity 800ms ease;
 }
 .work-frame[data-on="true"] {
   opacity: 1;
-  transform: scale(1.07);
+}
+.work-fg {
+  transform: var(--from);
+  transition: transform 0s linear 800ms;
+}
+.work-frame[data-on="true"] .work-fg {
+  transform: var(--to);
+  transition: transform var(--move) cubic-bezier(0.2, 0.6, 0.2, 1);
 }
 .work-sheen {
   position: absolute;
@@ -537,8 +580,12 @@
 @media (prefers-reduced-motion: reduce) {
   .work-frame,
   .work-frame[data-on="true"] {
-    transform: none;
     transition: opacity 200ms ease;
+  }
+  .work-fg,
+  .work-frame[data-on="true"] .work-fg {
+    transform: none;
+    transition: none;
   }
 }
 
@@ -1008,6 +1055,10 @@
    a card lifts and grows past its cell, takes a blue glow, turns to colour and slides the name and
    role up over the photo. Where there is no hover (touch), the names are simply shown. */
 .team-card {
+  /* At rest a card already carries a thin blue edge and a soft blue glow, as in the reference. */
+  box-shadow:
+    0 0 0 1px rgb(59 95 230 / 0.35),
+    0 12px 30px -14px rgb(45 80 210 / 0.55);
   transition:
     transform 520ms var(--ease-out),
     box-shadow 520ms var(--ease-out);
@@ -1042,7 +1093,7 @@
   inset: 0;
   z-index: 3;
   border-radius: inherit;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07);
+  box-shadow: inset 0 0 0 1px rgb(120 150 255 / 0.22);
   pointer-events: none;
   transition: box-shadow 400ms ease;
 }
@@ -1332,6 +1383,56 @@
     }
   }
 
+  /* The call to action's two buttons (components/site/footer.tsx): the white one lifts and glows blue, a sheen
+     crosses it and its arrow leans forward; the outlined one fills with green-tinted glass like WhatsApp. */
+  .cta-primary,
+  .cta-ghost {
+    position: relative;
+    overflow: hidden;
+    transition:
+      transform 320ms var(--ease-out),
+      box-shadow 320ms var(--ease-out),
+      background-color 320ms ease,
+      color 320ms ease,
+      border-color 320ms ease;
+  }
+  .cta-ghost {
+    background: rgb(255 255 255 / 0.06);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28);
+  }
+  .cta-primary::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgb(61 107 255 / 0.28) 50%, transparent 70%);
+    transform: translateX(-120%);
+    pointer-events: none;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cta-primary:hover {
+      transform: translateY(-3px);
+      background: #eaf0ff;
+      box-shadow:
+        0 0 0 4px rgb(61 107 255 / 0.25),
+        0 18px 40px -12px rgb(61 107 255 / 0.85);
+    }
+    .cta-primary:hover::after {
+      animation: team-sheen 800ms var(--ease-out) both;
+    }
+    .cta-ghost:hover {
+      transform: translateY(-3px);
+      background: rgb(37 211 102 / 0.16);
+      box-shadow:
+        inset 0 0 0 1px rgb(37 211 102 / 0.7),
+        0 18px 40px -16px rgb(37 211 102 / 0.55);
+    }
+  }
+  .cta-primary:focus-visible,
+  .cta-ghost:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+
   /* Loading: the final layout with a moving sheen, like a feed that is still arriving. */
   .shimmer {
     position: relative;
@@ -1467,7 +1568,8 @@
     transform 700ms var(--ease-out),
     visibility 0s linear 0s;
 }
-.immersive [data-hero][data-intro="off"] [data-hero-copy] {
+.immersive [data-hero][data-intro="off"] [data-hero-copy],
+[data-hero][data-video][data-intro="off"] [data-hero-copy] {
   opacity: 0;
   transform: translateY(-2.5rem);
   visibility: hidden;
@@ -1530,6 +1632,7 @@
     opacity 700ms var(--ease-out) 150ms,
     visibility 0s linear 0s;
 }
+[data-hero][data-video] [data-hero-mark],
 [data-3d="ready"] [data-hero-mark] {
   opacity: 0;
   visibility: hidden;

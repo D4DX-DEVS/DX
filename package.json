@@ -20,7 +20,11 @@
     "prune-media": "tsx --conditions=react-server --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/prune-media.ts",
     "check-admin": "tsx --conditions=react-server --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/check-admin.ts",
     "create-admin": "tsx --conditions=react-server --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/create-admin.ts",
-    "attach-image": "tsx --conditions=react-server --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/attach-image.ts"
+    "attach-image": "tsx --conditions=react-server --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/attach-image.ts",
+    "hero:video": "node scripts/hero-video-capture.mjs && HERO_VARIANT=mobile node scripts/hero-video-capture.mjs && tsx --conditions=react-server --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/hero-video-publish.ts",
+    "hero:video:publish": "tsx --conditions=react-server --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/hero-video-publish.ts",
+    "hero:video:off": "tsx --conditions=react-server --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/hero-video-publish.ts --off",
+    "hero:watch": "node scripts/hero-video-watch.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1155.0",
@@ -73,7 +77,9 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "mongodb": "^7.7.0",
+    "mp4-muxer": "^5.2.2",
     "opentype.js": "^2.0.0",
+    "puppeteer-core": "^25.16.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5",
