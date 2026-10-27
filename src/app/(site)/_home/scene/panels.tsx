@@ -331,8 +331,11 @@ export function Panels({ items, wide }: PanelsProps) {
         const e = easeOutCubic(k);
         g.position.set(x * e, y * e + Math.sin(t * 0.5 + i * 1.7) * 0.03, z);
         const away = 1 - smooth01(heroState.retreat * 3);
-        g.visible = born > 0.01 && away > 0.01;
-        g.scale.setScalar((0.3 + 0.7 * e) * born * away);
+        // On a phone the screen is too narrow for the camera to pass beside a panel, so a panel shrinks away just
+        // before the camera reaches it instead of filling the whole screen as it flies through.
+        const near = wide ? 1 : smooth01((camZ - panelZ(i) - 0.7) / 1.6);
+        g.visible = born > 0.01 && away > 0.01 && near > 0.01;
+        g.scale.setScalar((0.3 + 0.7 * e) * born * away * near);
         g.rotation.z = 0;
         // Each panel turns a little toward the pointer, on top of its own lean toward the corridor.
         g.rotation.y = THREE.MathUtils.damp(

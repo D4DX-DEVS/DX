@@ -72,7 +72,8 @@ export function HeroVideo({ config, labelledBy, children }: HeroVideoProps) {
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [reduced]);
+    // Phones switch to the tall recording after the page loads, which swaps the video element: bind again then.
+  }, [reduced, source.video]);
 
   // Follows the video's clock: the opening words and the caption of the project on show.
   useEffect(() => {
@@ -104,7 +105,7 @@ export function HeroVideo({ config, labelledBy, children }: HeroVideoProps) {
       v.removeEventListener("play", start);
       v.removeEventListener("pause", stop);
     };
-  }, [config]);
+  }, [config, source.video]);
 
   function toggle() {
     const v = clip.current;

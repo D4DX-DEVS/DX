@@ -81,6 +81,7 @@ export function FooterBackdrop() {
     let motes: Mote[] = [];
     let angle = 0.6;
     let last = 0;
+    let anchor: DOMRect | null = null;
 
     const build = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
@@ -89,6 +90,12 @@ export function FooterBackdrop() {
       el.width = Math.round(w * dpr);
       el.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // The contact column on a wide screen, the social icons on a phone: whichever is showing.
+      const box = [...(host.parentElement?.querySelectorAll("[data-globe-anchor]") ?? [])]
+        .map((a) => a.getBoundingClientRect())
+        .find((r) => r.width > 0);
+      const origin = host.getBoundingClientRect();
+      anchor = box ? new DOMRect(box.left - origin.left, box.top - origin.top, box.width, box.height) : null;
       motes = Array.from({ length: Math.max(24, Math.min(80, Math.round((w * h) / 16000))) }, () => ({
         x: Math.random() * w,
         y: Math.random() * h,
@@ -104,10 +111,11 @@ export function FooterBackdrop() {
       if (!still) angle += dt * 0.00016;
       ctx.clearRect(0, 0, w, h);
 
-      // A small globe at the foot of the footer, its lower edge sinking past the bottom like a planet on the horizon.
-      const R = Math.max(86, Math.min(h * 0.19, w * 0.1));
-      const cx = w - Math.max(R * 1.6, w * 0.13);
-      const cy = h - R * 0.5;
+      // A small globe beside the contact details, partly past the right edge of the footer; without them it
+      // sits at the foot of the footer, sinking past the bottom like a planet on the horizon.
+      const R = anchor ? Math.max(72, Math.min(130, w * 0.085)) : Math.max(86, Math.min(h * 0.19, w * 0.1));
+      const cx = anchor ? Math.min(w - R * 0.55, anchor.right + R * 1.1) : w - Math.max(R * 1.6, w * 0.13);
+      const cy = anchor ? anchor.top + anchor.height * 0.55 : h - R * 0.5;
       const tilt = 0.42;
       const cosA = Math.cos(angle);
       const sinA = Math.sin(angle);

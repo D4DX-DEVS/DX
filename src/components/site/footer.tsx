@@ -200,7 +200,7 @@ export async function Footer() {
             ) : null}
           </nav>
 
-          <div className="md:col-span-5 lg:col-span-3">
+          <div data-globe-anchor className="md:col-span-5 lg:col-span-3">
             <Heading>Contact us</Heading>
             <address className="mt-5 flex flex-col gap-5 text-[0.9375rem] leading-relaxed not-italic text-white/90">
               {settings.addressLines.length ? (
@@ -340,7 +340,11 @@ export async function Footer() {
               ) : null}
             </address>
             {socials.length ? (
-              <ul aria-label="Follow us" className="flex justify-center gap-3">
+              <ul
+                data-globe-anchor
+                aria-label="Follow us"
+                className="flex justify-center gap-3"
+              >
                 {socials.map(({ label, href, icon: Icon }) => (
                   <li key={label}>
                     <a
