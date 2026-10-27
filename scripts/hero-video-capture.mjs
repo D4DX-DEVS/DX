@@ -101,7 +101,9 @@ try {
     );
   }, 30_000);
 
-  const result = await page.evaluate(
+  // Set up the encoder in the page, then draw and encode in short batches: one long call can outlast the
+  // connection's patience on a slow or sleepy machine, short ones never do.
+  await page.evaluate(
     async (width, height, bitrate) => {
       const cap = window.__heroCapture;
       const out = document.createElement("canvas");
@@ -113,10 +115,10 @@ try {
         video: { codec: "avc", width, height },
         fastStart: "in-memory",
       });
-      let failure = null;
-      const encoder = new VideoEncoder({
+      const rec = { out, ctx, muxer, failure: null, encoder: null };
+      rec.encoder = new VideoEncoder({
         output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
-        error: (e) => (failure = e),
+        error: (e) => (rec.failure = e),
       });
       const config = {
         codec: "avc1.64002A",
@@ -129,45 +131,58 @@ try {
       const support = await VideoEncoder.isConfigSupported(config);
       if (!support.supported)
         throw new Error("This Chrome cannot encode H.264 video.");
-      encoder.configure(config);
-      const draw = (time) => {
+      rec.encoder.configure(config);
+      rec.draw = (time) => {
         const gl = cap.frame(time);
         ctx.drawImage(gl, 0, 0, width, height);
       };
-      const frames = Math.round(cap.duration * cap.fps);
-      for (let i = 0; i < frames; i++) {
-        draw(i / cap.fps);
-        const frame = new VideoFrame(out, {
-          timestamp: Math.round((i * 1e6) / cap.fps),
-          duration: Math.round(1e6 / cap.fps),
-        });
-        encoder.encode(frame, { keyFrame: i % cap.fps === 0 });
-        frame.close();
-        while (encoder.encodeQueueSize > 6)
-          await new Promise((r) => setTimeout(r, 5));
-        if (failure) throw failure;
-        window.__heroProgress = i;
-      }
-      await encoder.flush();
-      muxer.finalize();
-      const bytes = new Uint8Array(muxer.target.buffer);
-      let binary = "";
-      for (let i = 0; i < bytes.length; i += 0x8000)
-        binary += String.fromCharCode.apply(
-          null,
-          bytes.subarray(i, i + 0x8000),
-        );
-      // A still for the first paint: the opening mark, a moment in.
-      draw(0.7);
-      return {
-        video: btoa(binary),
-        poster: out.toDataURL("image/jpeg", 0.88).split(",")[1],
-      };
+      window.__heroRec = rec;
     },
     W,
     H,
     BITRATE,
   );
+  const total = Math.round(plan.duration * plan.fps);
+  const BATCH = 30;
+  for (let start = 0; start < total; start += BATCH) {
+    await page.evaluate(
+      async (start, end) => {
+        const cap = window.__heroCapture;
+        const rec = window.__heroRec;
+        for (let i = start; i < end; i++) {
+          rec.draw(i / cap.fps);
+          const frame = new VideoFrame(rec.out, {
+            timestamp: Math.round((i * 1e6) / cap.fps),
+            duration: Math.round(1e6 / cap.fps),
+          });
+          rec.encoder.encode(frame, { keyFrame: i % cap.fps === 0 });
+          frame.close();
+          while (rec.encoder.encodeQueueSize > 6)
+            await new Promise((r) => setTimeout(r, 5));
+          if (rec.failure) throw rec.failure;
+          window.__heroProgress = i;
+        }
+      },
+      start,
+      Math.min(total, start + BATCH),
+    );
+  }
+  const result = await page.evaluate(async () => {
+    const cap = window.__heroCapture;
+    const rec = window.__heroRec;
+    await rec.encoder.flush();
+    rec.muxer.finalize();
+    const bytes = new Uint8Array(rec.muxer.target.buffer);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 0x8000)
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    // A still for the first paint: the opening logo, whole, while the heading is on screen.
+    rec.draw(Math.max(0, cap.introEnd - 1.5));
+    return {
+      video: btoa(binary),
+      poster: rec.out.toDataURL("image/jpeg", 0.88).split(",")[1],
+    };
+  });
   clearInterval(progress);
   await writeFile(
     path.join(OUT, `${FILE}.mp4`),

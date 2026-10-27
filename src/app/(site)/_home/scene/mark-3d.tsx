@@ -6,7 +6,7 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import * as THREE from "three";
 import { MARK } from "@/components/brand/paths";
 import { shapesFor, smooth01 } from "./geometry";
-import { makeShards, shardMaterial } from "./shards";
+import { makeShards, splitGeometry } from "./shards";
 import { CAMERA_START_Z, markOpen } from "./path";
 import { heroState } from "./state";
 
@@ -76,7 +76,7 @@ export function Mark3D({ count, wide, stage }: Mark3DProps) {
       }),
     [],
   );
-  const { geometry, shards, materials } = useMemo(() => {
+  const { geometry, shards, pieceGeometries } = useMemo(() => {
     const parts = [MARK.body.d, MARK.top.d, MARK.bottom.d, MARK.notch.d].map(
       (d) =>
         centre(new THREE.ExtrudeGeometry(shapesFor(d), EXTRUDE), -DEPTH / 2),
@@ -94,23 +94,24 @@ export function Mark3D({ count, wide, stage }: Mark3DProps) {
           ctx.fill(new Path2D(d));
       },
     });
-    const seeds = list.map((sh) => new THREE.Vector2(sh.x, sh.y));
     return {
       geometry: merged,
       shards: list,
-      materials: list.map((_, i) => shardMaterial(blue, seeds, i)),
+      pieceGeometries: splitGeometry(merged, list, 40),
     };
-  }, [wide, blue]);
+  }, [wide]);
   useLayoutEffect(
     () => () => {
       blue.dispose();
       geometry.dispose();
-      for (const m of materials) m.dispose();
+      for (const g of pieceGeometries) g.dispose();
     },
-    [blue, geometry, materials],
+    [blue, geometry, pieceGeometries],
   );
 
   const root = useRef<THREE.Group>(null);
+  const whole = useRef<THREE.Mesh>(null);
+  const broken = useRef<THREE.Group>(null);
   const pieces = useRef<(THREE.Group | null)[]>([]);
   const from = useRef<Placement | null>(null);
   const measuredFor = useRef("");
@@ -160,6 +161,13 @@ export function Mark3D({ count, wide, stage }: Mark3DProps) {
     );
 
     // Breaking apart: every piece pushes away from the middle, toward the camera and spins about its own centre.
+    // Drawing every piece costs one pass of the whole logo per piece, so the pieces are only drawn while the logo
+    // is breaking or gathering; whole, it is a single mesh, and once every piece has flown it is not drawn at all.
+    const moving = open > 0 || heroState.assemble < 1;
+    const gone = open >= 0.999 || heroState.assemble <= 0.001;
+    if (whole.current) whole.current.visible = !moving;
+    if (broken.current) broken.current.visible = moving && !gone;
+    if (!moving || gone) return;
     for (let i = 0; i < shards.length; i++) {
       const sh = shards[i]!;
       const piece = pieces.current[i];
@@ -185,21 +193,24 @@ export function Mark3D({ count, wide, stage }: Mark3DProps) {
 
   return (
     <group ref={root}>
-      {shards.map((sh, i) => (
-        <group
-          key={i}
-          ref={(el) => {
-            pieces.current[i] = el;
-          }}
-          position={[sh.x, sh.y, 0]}
-        >
-          <mesh
-            geometry={geometry}
-            material={materials[i]}
-            position={[-sh.x, -sh.y, 0]}
-          />
-        </group>
-      ))}
+      <mesh ref={whole} geometry={geometry} material={blue} />
+      <group ref={broken} visible={false}>
+        {shards.map((sh, i) => (
+          <group
+            key={i}
+            ref={(el) => {
+              pieces.current[i] = el;
+            }}
+            position={[sh.x, sh.y, 0]}
+          >
+            <mesh
+              geometry={pieceGeometries[i]}
+              material={blue}
+              position={[-sh.x, -sh.y, 0]}
+            />
+          </group>
+        ))}
+      </group>
     </group>
   );
 }

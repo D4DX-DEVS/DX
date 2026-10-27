@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { TessellateModifier } from "three/examples/jsm/modifiers/TessellateModifier.js";
 import { seeded } from "./geometry";
 
 /** A piece of a broken logo: where its cell is centred (in the artwork's units) and how it flies. */
@@ -93,43 +94,49 @@ export function makeShards({
 }
 
 /**
- * A copy of a material that draws only the part of the geometry nearest to one shard's seed, so many meshes sharing
- * one geometry each show their own piece (and no other).
+ * Cuts a geometry into one geometry per shard: it is first split into small triangles, and each triangle goes to the
+ * shard whose seed is nearest its centre. Each piece then draws only its own triangles, so a broken logo costs about
+ * the same to draw as a whole one.
  */
-export function shardMaterial<T extends THREE.Material>(
-  base: T,
-  seeds: THREE.Vector2[],
-  id: number,
-): T {
-  const m = base.clone() as T;
-  m.side = THREE.DoubleSide;
-  const n = seeds.length;
-  m.onBeforeCompile = (shader) => {
-    shader.uniforms.uSeeds = { value: seeds };
-    shader.uniforms.uId = { value: id };
-    shader.vertexShader = shader.vertexShader
-      .replace("#include <common>", "#include <common>\nvarying vec2 vShard;")
-      .replace(
-        "#include <begin_vertex>",
-        "#include <begin_vertex>\nvShard = position.xy;",
-      );
-    shader.fragmentShader = shader.fragmentShader
-      .replace(
-        "#include <common>",
-        `#include <common>\nvarying vec2 vShard;\nuniform vec2 uSeeds[${n}];\nuniform float uId;`,
-      )
-      .replace(
-        "#include <clipping_planes_fragment>",
-        `#include <clipping_planes_fragment>
-        {
-          int me = int(uId + 0.5);
-          float mine = distance(vShard, uSeeds[me]);
-          for (int i = 0; i < ${n}; i++) {
-            if (i != me && distance(vShard, uSeeds[i]) < mine) discard;
-          }
-        }`,
-      );
-  };
-  m.customProgramCacheKey = () => `shard-${n}-${base.type}`;
-  return m;
+export function splitGeometry(
+  geometry: THREE.BufferGeometry,
+  seeds: { x: number; y: number }[],
+  maxEdge: number,
+): THREE.BufferGeometry[] {
+  const fine = new TessellateModifier(maxEdge, 10).modify(
+    geometry.index ? geometry.toNonIndexed() : geometry,
+  );
+  const names = Object.keys(fine.attributes).filter(
+    (n) => n === "position" || n === "normal" || n === "uv",
+  );
+  const buckets = seeds.map(() => names.map(() => [] as number[]));
+  const pos = fine.attributes.position!;
+  for (let t = 0; t < pos.count; t += 3) {
+    const cx = (pos.getX(t) + pos.getX(t + 1) + pos.getX(t + 2)) / 3;
+    const cy = (pos.getY(t) + pos.getY(t + 1) + pos.getY(t + 2)) / 3;
+    let best = 0;
+    let bestD = Infinity;
+    for (let i = 0; i < seeds.length; i++) {
+      const d = (seeds[i]!.x - cx) ** 2 + (seeds[i]!.y - cy) ** 2;
+      if (d < bestD) {
+        bestD = d;
+        best = i;
+      }
+    }
+    names.forEach((name, n) => {
+      const attr = fine.attributes[name]!;
+      for (let v = t; v < t + 3; v++)
+        for (let k = 0; k < attr.itemSize; k++)
+          buckets[best]![n]!.push(attr.array[v * attr.itemSize + k]!);
+    });
+  }
+  fine.dispose();
+  return buckets.map((lists) => {
+    const g = new THREE.BufferGeometry();
+    names.forEach((name, n) => {
+      const size = name === "uv" ? 2 : 3;
+      g.setAttribute(name, new THREE.Float32BufferAttribute(lists[n]!, size));
+    });
+    return g;
+  });
 }

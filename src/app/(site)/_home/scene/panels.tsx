@@ -9,7 +9,7 @@ import { heroState } from "./state";
 
 const ASPECT = 4 / 3;
 const SLAB_DEPTH = 0.08;
-const DIM = new THREE.Color(0.42, 0.42, 0.4);
+const DIM = new THREE.Color(0.82, 0.82, 0.82);
 const LIT = new THREE.Color(1, 1, 1);
 
 /** How far ahead of the camera a panel begins to swim up, and how far ahead it has settled. */
@@ -74,13 +74,11 @@ function labelled(
   const ctx = canvas.getContext("2d")!;
   ctx.drawImage(cover, 0, 0, W, H);
 
-  // Glass: a cool tint, a glare across the top-left, a soft diagonal streak and a bright rim, so each screen
-  // reads as if seen through a pane.
-  ctx.fillStyle = "rgba(90,130,255,0.07)";
-  ctx.fillRect(0, 0, W, H);
+  // Glass, kept light so the screenshot stays sharp and in full colour: a faint glare in the top-left corner, a
+  // barely-there diagonal streak and a bright rim.
   const glare = ctx.createLinearGradient(0, 0, W * 0.55, H * 0.75);
-  glare.addColorStop(0, "rgba(255,255,255,0.30)");
-  glare.addColorStop(0.45, "rgba(255,255,255,0.06)");
+  glare.addColorStop(0, "rgba(255,255,255,0.12)");
+  glare.addColorStop(0.3, "rgba(255,255,255,0)");
   glare.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = glare;
   ctx.fillRect(0, 0, W, H);
@@ -93,7 +91,7 @@ function labelled(
   ctx.closePath();
   const streak = ctx.createLinearGradient(W * 0.3, 0, W * 0.6, 0);
   streak.addColorStop(0, "rgba(255,255,255,0)");
-  streak.addColorStop(0.5, "rgba(255,255,255,0.10)");
+  streak.addColorStop(0.5, "rgba(255,255,255,0.04)");
   streak.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = streak;
   ctx.fill();
@@ -290,8 +288,8 @@ export function Panels({ items, wide }: PanelsProps) {
         roughness: 0.04,
         clearcoat: 1,
         transparent: true,
-        opacity: 0.2,
-        envMapIntensity: 2.6,
+        opacity: 0.05,
+        envMapIntensity: 0.8,
         depthWrite: false,
       }),
     };
@@ -377,8 +375,6 @@ export function Panels({ items, wide }: PanelsProps) {
                 map={texture}
                 color={DIM}
                 toneMapped={false}
-                transparent
-                opacity={0.9}
               />
             </mesh>
             <mesh geometry={pane} material={glass} />
