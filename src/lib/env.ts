@@ -22,7 +22,14 @@ const schema = z.object({
   // without one (or if a call fails) the built-in pencil filter is used instead.
   OPENAI_API_KEY: z.string().min(1).optional(),
   OPENAI_IMAGE_MODEL: z.string().min(1).default("gpt-image-1"),
-  DEBUG_DB: z.enum(["0", "1"]).default("0"),
+  // Optional SMTP. Without SMTP_HOST, sendMail() logs a warning and sends nothing.
+  // Port 465 uses implicit TLS; other ports upgrade with STARTTLS.
+  SMTP_HOST: z.string().min(1).optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_USER: z.string().min(1).optional(),
+  SMTP_PASS: z.string().min(1).optional(),
+  SMTP_FROM: z.string().min(1).optional(),
+  DEBUG_DB:z.enum(["0", "1"]).default("0"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
 
