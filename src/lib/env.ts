@@ -3,8 +3,9 @@ import { z } from "zod";
 
 const schema = z.object({
   // Cloudflare D1, reached over the Cloudflare HTTP API (token needs D1 edit permission).
-  // Not named CLOUDFLARE_API_TOKEN: Wrangler reads that from .env and would deploy with this D1-only token.
-  CLOUDFLARE_ACCOUNT_ID: z.string().min(1, "CLOUDFLARE_ACCOUNT_ID is required"),
+  // Not named CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID: Wrangler reads those (from .env and from build
+  // variables) and would deploy with this D1-only token, or to the D1 account instead of the Worker's.
+  D1_ACCOUNT_ID: z.string().min(1, "D1_ACCOUNT_ID is required"),
   D1_API_TOKEN: z.string().min(1, "D1_API_TOKEN is required"),
   D1_DATABASE_ID: z.string().min(1, "D1_DATABASE_ID is required"),
   AUTH_SECRET: z.string().min(32, "AUTH_SECRET must be at least 32 characters"),
@@ -40,7 +41,10 @@ let cached: Env | null = null;
 
 /** Validated server environment. Parsed on first use so a missing value fails loudly, once. */
 export function env(): Env {
-  // Env files written before the rename still name the D1 token CLOUDFLARE_API_TOKEN.
-  if (!cached) cached = schema.parse({ D1_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN, ...process.env });
+  // Env files written before the rename still use the CLOUDFLARE_* names.
+  if (!cached) {
+    const legacy = { D1_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID, D1_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN };
+    cached = schema.parse({ ...legacy, ...process.env });
+  }
   return cached;
 }

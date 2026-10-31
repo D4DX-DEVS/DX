@@ -6,6 +6,8 @@
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-23",
   "observability": { "enabled": true },
+  // Runtime values are set in the dashboard (Settings > Variables and Secrets); deploys must not remove them.
+  "keep_vars": true,
   "containers": [
     {
       "class_name": "Site",
