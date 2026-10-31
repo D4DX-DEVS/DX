@@ -3,8 +3,9 @@ import { z } from "zod";
 
 const schema = z.object({
   // Cloudflare D1, reached over the Cloudflare HTTP API (token needs D1 edit permission).
+  // Not named CLOUDFLARE_API_TOKEN: Wrangler reads that from .env and would deploy with this D1-only token.
   CLOUDFLARE_ACCOUNT_ID: z.string().min(1, "CLOUDFLARE_ACCOUNT_ID is required"),
-  CLOUDFLARE_API_TOKEN: z.string().min(1, "CLOUDFLARE_API_TOKEN is required"),
+  D1_API_TOKEN: z.string().min(1, "D1_API_TOKEN is required"),
   D1_DATABASE_ID: z.string().min(1, "D1_DATABASE_ID is required"),
   AUTH_SECRET: z.string().min(32, "AUTH_SECRET must be at least 32 characters"),
   SITE_URL: z.url().default("http://localhost:3233"),
@@ -27,7 +28,7 @@ const schema = z.object({
   SMTP_HOST: z.string().min(1).optional(),
   SMTP_PORT: z.coerce.number().int().positive().default(587),
   SMTP_USER: z.string().min(1).optional(),
-  SMTP_PASS: z.string().min(1).optional(),
+  SMTP_PASSWORD: z.string().min(1).optional(),
   SMTP_FROM: z.string().min(1).optional(),
   DEBUG_DB:z.enum(["0", "1"]).default("0"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
@@ -39,6 +40,7 @@ let cached: Env | null = null;
 
 /** Validated server environment. Parsed on first use so a missing value fails loudly, once. */
 export function env(): Env {
-  if (!cached) cached = schema.parse(process.env);
+  // Env files written before the rename still name the D1 token CLOUDFLARE_API_TOKEN.
+  if (!cached) cached = schema.parse({ D1_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN, ...process.env });
   return cached;
 }

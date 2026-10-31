@@ -41,13 +41,13 @@ function toSql(value: SqlParam): string | number | null {
 const RETRYABLE = new Set([429, 502, 503, 504]);
 
 async function request<T>(body: object, attempt = 0): Promise<D1Result<T>[]> {
-  const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, D1_DATABASE_ID } = env();
+  const { CLOUDFLARE_ACCOUNT_ID, D1_API_TOKEN, D1_DATABASE_ID } = env();
   const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database/${D1_DATABASE_ID}/query`;
   let res: Response;
   try {
     res = await fetch(url, {
       method: "POST",
-      headers: { Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${D1_API_TOKEN}`, "Content-Type": "application/json" },
       body: JSON.stringify(body),
       cache: "no-store",
     });

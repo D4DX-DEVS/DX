@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Must match the Worker connected to the repo in Workers Builds.
+  "name": "dx",
+  // The Worker only forwards requests; the site itself is the Next.js server in the container.
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-23",
+  "observability": { "enabled": true },
+  "containers": [
+    {
+      "class_name": "Site",
+      "image": "./Dockerfile",
+      // 1/4 vCPU, 1 GiB memory. Use "standard-1" (4 GiB) if large image uploads run out of memory.
+      "instance_type": "basic",
+      // Next keeps its cache in memory and admin saves invalidate it there, so one instance serves the site.
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "SITE", "class_name": "Site" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Site"] }]
+}

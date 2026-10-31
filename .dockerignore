@@ -1,0 +1,17 @@
+.git
+node_modules
+storage
+worker
+.wrangler
+.code-review-graph
+.taste-skill
+.playwright-mcp
+*.tsbuildinfo
+.env*
+
+# Only the built server and its static files go into the image (see Dockerfile).
+.next/*
+!.next/standalone
+!.next/static
+# Next copies env files into the standalone output; they must never be baked into the image.
+.next/standalone/.env*

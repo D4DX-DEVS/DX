@@ -4,6 +4,8 @@ import type { NextConfig } from "next";
 const r2Public = process.env.R2_PUBLIC_URL ? new URL(process.env.R2_PUBLIC_URL) : null;
 
 const nextConfig: NextConfig = {
+  // Self-contained server in .next/standalone, which the Dockerfile ships to Cloudflare Containers.
+  output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,

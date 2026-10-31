@@ -8,13 +8,13 @@ const globalForMail = globalThis as unknown as { __smtp?: Transporter };
 /** One pooled SMTP transport per process (survives dev hot reloads). Null when SMTP is not configured. */
 function transport(): Transporter | null {
   if (globalForMail.__smtp) return globalForMail.__smtp;
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = env();
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD } = env();
   if (!SMTP_HOST) return null;
   globalForMail.__smtp = nodemailer.createTransport({
     host: SMTP_HOST,
     port: SMTP_PORT,
     secure: SMTP_PORT === 465,
-    auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
+    auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASSWORD } : undefined,
     pool: true,
   });
   return globalForMail.__smtp;
