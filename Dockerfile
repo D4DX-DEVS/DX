@@ -4,7 +4,7 @@
 FROM node:24-slim
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=8080 HOSTNAME=0.0.0.0
-COPY --chown=node:node public ./public
+# public/ is empty (git keeps no empty folders); add `COPY --chown=node:node public ./public` once it has files.
 COPY --chown=node:node .next/standalone ./
 COPY --chown=node:node .next/static ./.next/static
 USER node
