@@ -28,6 +28,9 @@ export default {
     const ip = request.headers.get("cf-connecting-ip");
     if (ip) forwarded.headers.set("x-forwarded-for", ip);
     forwarded.headers.set("x-forwarded-proto", "https");
+    // Server Actions compare Origin with x-forwarded-host (else Host, which the container hop does not keep),
+    // so without it every form post fails with "Invalid Server Actions request".
+    forwarded.headers.set("x-forwarded-host", new URL(request.url).host);
     return getContainer(env.SITE).fetch(forwarded);
   },
 } satisfies ExportedHandler<Env>;
