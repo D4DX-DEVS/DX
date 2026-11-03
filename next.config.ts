@@ -23,7 +23,8 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 30,
   },
   experimental: {
-    serverActions: { bodySizeLimit: "30mb" },
+    // d4dx.co reaches the Worker through a proxy on the zone, so Origin (d4dx.co) differs from the forwarded host.
+    serverActions: { bodySizeLimit: "30mb", allowedOrigins: ["d4dx.co", "www.d4dx.co"] },
   },
   cacheLife: {
     // Content edited from the admin: kept until an admin save calls updateTag().
