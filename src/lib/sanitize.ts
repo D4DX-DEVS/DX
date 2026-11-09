@@ -5,7 +5,8 @@ import sanitizeHtml from "sanitize-html";
  * legal pages. Headings start at h2 because every page owns its single h1.
  */
 export function sanitizeRichText(html: string): string {
-  return sanitizeHtml(html, {
+  // WordPress Visual Composer leaves [vc_row], [vc_column_text css=""] and their closing tags in imported text.
+  return sanitizeHtml(html.replace(/\[\/?vc_\w+[^\]]*\]/g, ""), {
     allowedTags: ["h2", "h3", "h4", "p", "br", "strong", "b", "em", "i", "u", "s", "a", "ul", "ol", "li", "blockquote", "code", "pre", "hr", "img", "figure", "figcaption"],
     allowedAttributes: {
       a: ["href", "title", "target", "rel"],

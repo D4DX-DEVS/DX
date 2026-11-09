@@ -30,6 +30,10 @@ const nextConfig: NextConfig = {
     // Content edited from the admin: kept until an admin save calls updateTag().
     content: { stale: 300, revalidate: 60 * 60 * 24, expire: 60 * 60 * 24 * 30 },
   },
+  // Legal pages used to live under /legal; keep old links and search results working.
+  async redirects() {
+    return [{ source: "/legal/:slug", destination: "/:slug", permanent: true }];
+  },
   async headers() {
     return [
       {

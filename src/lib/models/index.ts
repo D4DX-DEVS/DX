@@ -161,7 +161,7 @@ export interface PageRow extends Timestamps {
   slug: string;
   title: string;
   content: string;
-  /** "legal" (footer and /legal) or "careers" (the Join Our Team page). */
+  /** "legal" (footer links) or "careers" (the Join Our Team page). */
   section: string;
 }
 

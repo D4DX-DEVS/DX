@@ -11,6 +11,11 @@ describe("sanitizeRichText", () => {
     expect(sanitizeRichText("<h1>Title</h1><p> </p>")).toBe("<h2>Title</h2>");
   });
 
+  it("drops leftover Visual Composer shortcodes", () => {
+    const html = '<p>[vc_row][vc_column][vc_column_text css=""]</p><h2>Title</h2><p>Hi[/vc_column_text][/vc_column][/vc_row]</p>';
+    expect(sanitizeRichText(html)).toBe("<h2>Title</h2><p>Hi</p>");
+  });
+
   it("blocks javascript: links and opens external links safely", () => {
     expect(sanitizeRichText('<a href="javascript:alert(1)">x</a>')).not.toContain("javascript");
     expect(sanitizeRichText('<a href="https://play.google.com/x">x</a>')).toContain('rel="noopener noreferrer"');

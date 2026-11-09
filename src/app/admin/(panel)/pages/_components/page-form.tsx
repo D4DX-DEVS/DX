@@ -77,7 +77,7 @@ export function PageForm({ id, initial, publicSlug }: PageFormProps) {
           <Field
             id="slug"
             label="Slug"
-            hint={section === "legal" ? `The address: /legal/${slug || "…"}` : "A short name for this block; it is not shown on the site."}
+            hint={section === "legal" ? `The address: /${slug || "…"}` : "A short name for this block; it is not shown on the site."}
             error={errors.slug?.message}
           >
             <Input id="slug" aria-invalid={Boolean(errors.slug)} aria-describedby={err("slug") ?? "slug-hint"} {...register("slug")} />
@@ -112,7 +112,7 @@ export function PageForm({ id, initial, publicSlug }: PageFormProps) {
         </Field>
         {publicSlug ? (
           <Button asChild variant="outline">
-            <a href={section === "legal" ? `/legal/${publicSlug}` : "/careers"} target="_blank" rel="noreferrer">
+            <a href={section === "legal" ? `/${publicSlug}` : "/careers"} target="_blank" rel="noreferrer">
               View on the site
               <ExternalLink className="size-4" aria-hidden="true" />
             </a>

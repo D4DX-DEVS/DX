@@ -68,7 +68,7 @@ async function PagesTable({ searchParams }: { searchParams: Search }) {
                     {p.title}
                   </Link>
                 </TableCell>
-                <TableCell className="hidden text-soft md:table-cell">{p.section === "legal" ? `/legal/${p.slug}` : PAGE_SECTION_LABEL[p.section as keyof typeof PAGE_SECTION_LABEL] ?? p.section}</TableCell>
+                <TableCell className="hidden text-soft md:table-cell">{p.section === "legal" ? `/${p.slug}` : PAGE_SECTION_LABEL[p.section as keyof typeof PAGE_SECTION_LABEL] ?? p.section}</TableCell>
                 <TableCell className="hidden text-soft sm:table-cell">{shortDate(p.updated_at)}</TableCell>
                 <TableCell className="hidden text-right sm:table-cell">
                   <div className="flex justify-end gap-1">
@@ -95,7 +95,7 @@ export default function LegalPagesPage({ searchParams }: PageProps<"/admin/pages
     <div className="space-y-6 lg:space-y-8">
       <PageHeader
         title="Pages"
-        description="Legal pages under /legal, and the text blocks of the Join Our Team page."
+        description="Legal pages (footer links), and the text blocks of the Join Our Team page."
         actions={
           <Button asChild className="bg-brand text-on-brand hover:bg-[var(--brand-strong)]">
             <Link href="/admin/pages/new">

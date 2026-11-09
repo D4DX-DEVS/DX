@@ -266,7 +266,7 @@ export async function Footer() {
             {legal.map((p) => (
               <li key={p.slug} className="flex items-center">
                 <Link
-                  href={`/legal/${p.slug}`}
+                  href={`/${p.slug}`}
                   className="link inline-flex min-h-11 items-center px-4 first:pl-0 lg:first:pl-4"
                 >
                   {p.title}
@@ -374,7 +374,7 @@ export async function Footer() {
                 {i > 0 ? " " : null}
                 <span className="whitespace-nowrap">
                   <Link
-                    href={`/legal/${p.slug}`}
+                    href={`/${p.slug}`}
                     className="link inline-block py-1"
                   >
                     {p.title}

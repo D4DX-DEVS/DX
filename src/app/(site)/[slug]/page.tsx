@@ -13,7 +13,7 @@ export async function generateStaticParams() {
   return pages.length ? pages.map((p) => ({ slug: p.slug })) : [{ slug: "__empty" }];
 }
 
-export async function generateMetadata({ params }: PageProps<"/legal/[slug]">): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<"/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const page = await getLegalPage(slug);
   return { title: page?.title ?? "Page not found", robots: { index: Boolean(page) } };
@@ -39,7 +39,7 @@ async function Legal({ slug }: { slug: string }) {
   );
 }
 
-export default function LegalPage({ params }: PageProps<"/legal/[slug]">) {
+export default function LegalPage({ params }: PageProps<"/[slug]">) {
   return (
     <Suspense
       fallback={

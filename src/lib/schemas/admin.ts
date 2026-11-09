@@ -129,10 +129,10 @@ export const jobSchema = z.object({
 });
 export type JobInput = z.infer<typeof jobSchema>;
 
-/** Where a page shows: the legal pages (footer and /legal), or the Join Our Team page above or below its positions table. */
+/** Where a page shows: the legal pages (footer links), or the Join Our Team page above or below its positions table. */
 export const PAGE_SECTIONS = ["legal", "careers-top", "careers-bottom"] as const;
 export const PAGE_SECTION_LABEL: Record<(typeof PAGE_SECTIONS)[number], string> = {
-  legal: "Legal pages (footer and /legal)",
+  legal: "Legal pages (footer links)",
   "careers-top": "Join Our Team: above the positions",
   "careers-bottom": "Join Our Team: below the positions",
 };
