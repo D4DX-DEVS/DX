@@ -278,12 +278,6 @@ export async function Footer() {
               </li>
             ))}
           </ul>
-          <p>
-            Powered by{" "}
-            <Link href="/" className="link font-semibold text-brand-ink">
-              D4DX Innovations
-            </Link>
-          </p>
         </div>
 
         {/* On a phone the footer is two rows: how to reach us (address and social icons), then the small print. */}
