@@ -32,7 +32,12 @@ const nextConfig: NextConfig = {
   },
   // Legal pages used to live under /legal; keep old links and search results working.
   async redirects() {
-    return [{ source: "/legal/:slug", destination: "/:slug", permanent: true }];
+    return [
+      { source: "/legal/:slug", destination: "/:slug", permanent: true },
+      { source: "/terms-and-conditions", destination: "/terms-conditions", permanent: true },
+      { source: "/projects", destination: "/work", permanent: true },
+      { source: "/projects/:slug", destination: "/work/:slug", permanent: true },
+    ];
   },
   async headers() {
     return [
